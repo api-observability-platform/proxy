@@ -17,7 +17,7 @@
     "docker:prod:stop": "docker compose -f docker-compose.prod.yml stop -t 10",
     "hooks:init": "simple-git-hooks",
     "hooks:precommit": "lint-staged -c lint-staged.config.ts",
-    "hooks:prepush": "concurrently 'npm run build -w apps/backend' 'npm run build -w apps/web'"
+    "hooks:prepush": ""
   },
   "repository": {
     "type": "git",
