@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import type { Endpoint } from '@prisma/client';
-import { NotificationsService } from '../notifications/notifications.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { EndpointsService } from '../endpoints/endpoints.service';
+import { Injectable } from "@nestjs/common";
+import { Prisma, type Endpoint } from "@prisma/generated/client";
+import { NotificationsService } from "../modules/notifications/notifications.service";
+import { PrismaService } from "../core/prisma/prisma.service";
+import { EndpointsService } from "../modules/endpoints/endpoints.service";
 
 @Injectable()
 export class ProxyService {
@@ -45,7 +44,7 @@ export class ProxyService {
     };
     this.prisma.requestLog
       .create({ data: payload })
-      .catch((err) => console.error('Failed to log request:', err));
+      .catch((err: unknown) => console.error("Failed to log request:", err));
 
     this.notifications
       .evaluateAndNotify(data.endpointId, {
@@ -54,14 +53,14 @@ export class ProxyService {
         method: data.method,
         path: data.path,
       })
-      .catch((err) => console.error('Notification evaluation failed:', err));
+      .catch((err) => console.error("Notification evaluation failed:", err));
   }
 
   truncateForLog(value: string | Buffer | null, limit: number): string | null {
     if (value == null) return null;
-    const str = Buffer.isBuffer(value) ? value.toString('utf8') : String(value);
+    const str = Buffer.isBuffer(value) ? value.toString("utf8") : String(value);
     if (str.length <= limit) return str;
-    return str.slice(0, limit) + '\n...[truncated]';
+    return str.slice(0, limit) + "\n...[truncated]";
   }
 
   buildTargetUrl(
@@ -69,8 +68,8 @@ export class ProxyService {
     path: string,
     queryString: string,
   ): string {
-    const base = endpoint.targetUrl.replace(/\/$/, '');
-    const pathPart = path.startsWith('/') ? path : `/${path}`;
+    const base = endpoint.targetUrl.replace(/\/$/, "");
+    const pathPart = path.startsWith("/") ? path : `/${path}`;
     const url = `${base}${pathPart}`;
     return queryString ? `${url}?${queryString}` : url;
   }
@@ -78,13 +77,13 @@ export class ProxyService {
   maskSensitiveHeaders(
     headers: Record<string, string>,
   ): Record<string, string> {
-    const mask = '[REDACTED]';
+    const mask = "[REDACTED]";
     const sensitive = new Set([
-      'authorization',
-      'cookie',
-      'x-api-key',
-      'x-auth-token',
-      'proxy-authorization',
+      "authorization",
+      "cookie",
+      "x-api-key",
+      "x-auth-token",
+      "proxy-authorization",
     ]);
     const result: Record<string, string> = {};
     for (const [key, value] of Object.entries(headers)) {
@@ -96,10 +95,10 @@ export class ProxyService {
   getClientIp(
     headers: Record<string, string | string[] | undefined>,
   ): string | null {
-    const forwarded = headers['x-forwarded-for'];
+    const forwarded = headers["x-forwarded-for"];
     if (forwarded) {
       const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-      return first?.split(',')[0]?.trim() ?? null;
+      return first?.split(",")[0]?.trim() ?? null;
     }
     return null;
   }
@@ -109,17 +108,17 @@ export class ProxyService {
     targetHost: string,
   ): Record<string, string> {
     const skip = new Set([
-      'host',
-      'connection',
-      'content-length',
-      'transfer-encoding',
+      "host",
+      "connection",
+      "content-length",
+      "transfer-encoding",
     ]);
     const result: Record<string, string> = { Host: targetHost };
     for (const [key, value] of Object.entries(headers)) {
       const lower = key.toLowerCase();
       if (skip.has(lower)) continue;
       if (value === undefined) continue;
-      const v = Array.isArray(value) ? value.join(', ') : value;
+      const v = Array.isArray(value) ? value.join(", ") : value;
       result[key] = v;
     }
     return result;

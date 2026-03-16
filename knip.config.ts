@@ -5,6 +5,7 @@ const config: KnipConfig = {
   workspaces: {
     "apps/backend": {
       project: ["src/**/*.ts"],
+      ignoreDependencies: ["@prisma/client", "tsconfig-paths"],
     },
     "apps/web": {
       project: ["src/**/*.{ts,tsx}"],

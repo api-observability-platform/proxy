@@ -12,3 +12,4 @@ ignore:
   - .git
   - .editorconfig
   - README.md
+  - apps/backend/prisma/generated

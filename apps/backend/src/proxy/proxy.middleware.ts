@@ -1,13 +1,18 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { NextFunction, Request, Response } from 'express';
-import axios from 'axios';
-import { ProxyService } from './proxy.service';
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { NextFunction, Request, Response } from "express";
+import axios from "axios";
+import { ConfigKeyEnum } from "../common/enums/config.enum";
+import { ProxyService } from "./proxy.service";
 
-const BODY_LIMIT = 1024 * 1024; // 1MB for forwarding
+const BODY_LIMIT = 1024 * 1024;
 
 @Injectable()
 export class ProxyMiddleware implements NestMiddleware {
-  constructor(private readonly proxyService: ProxyService) {}
+  constructor(
+    private readonly proxyService: ProxyService,
+    private readonly config: ConfigService,
+  ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     const { slug, path, isProxy } = this.extractSlugAndPath(req);
@@ -18,7 +23,7 @@ export class ProxyMiddleware implements NestMiddleware {
     const endpoint = await this.proxyService.resolveEndpoint(slug);
     if (!endpoint) {
       res.status(404).json({
-        error: 'Endpoint not found',
+        error: "Endpoint not found",
         message: `No proxy endpoint found for slug: ${slug}`,
       });
       return;
@@ -30,13 +35,13 @@ export class ProxyMiddleware implements NestMiddleware {
     try {
       requestBody = await this.bufferBody(req, BODY_LIMIT);
     } catch {
-      res.status(413).json({ error: 'Request entity too large' });
+      res.status(413).json({ error: "Request entity too large" });
       return;
     }
 
-    const queryString = req.url.includes('?')
-      ? req.url.slice(req.url.indexOf('?') + 1)
-      : '';
+    const queryString = req.url.includes("?")
+      ? req.url.slice(req.url.indexOf("?") + 1)
+      : "";
     const targetUrl = this.proxyService.buildTargetUrl(
       endpoint,
       path,
@@ -49,7 +54,7 @@ export class ProxyMiddleware implements NestMiddleware {
       targetHost,
     );
 
-    const axiosConfig: import('axios').AxiosRequestConfig = {
+    const axiosConfig: import("axios").AxiosRequestConfig = {
       method: req.method,
       url: targetUrl,
       headers,
@@ -66,9 +71,9 @@ export class ProxyMiddleware implements NestMiddleware {
 
       res.status(response.status);
       for (const [key, value] of Object.entries(response.headers)) {
-        const skip = ['transfer-encoding', 'content-encoding', 'connection'];
+        const skip = ["transfer-encoding", "content-encoding", "connection"];
         if (skip.includes(key.toLowerCase())) continue;
-        if (typeof value === 'string') res.setHeader(key, value);
+        if (typeof value === "string") res.setHeader(key, value);
       }
       res.send(response.data);
 
@@ -80,10 +85,7 @@ export class ProxyMiddleware implements NestMiddleware {
         requestHeaders: this.proxyService.maskSensitiveHeaders(
           headers as Record<string, string>,
         ),
-        requestBody: this.proxyService.truncateForLog(
-          requestBody,
-          100 * 1024,
-        ),
+        requestBody: this.proxyService.truncateForLog(requestBody, 100 * 1024),
         responseStatus: response.status,
         responseHeaders: this.proxyService.maskSensitiveHeaders(
           response.headers as Record<string, string>,
@@ -99,12 +101,12 @@ export class ProxyMiddleware implements NestMiddleware {
       });
     } catch (err) {
       const durationMs = Date.now() - startTime;
-      const status = axios.isAxiosError(err) && err.response
-        ? err.response.status
-        : 502;
-      const body = axios.isAxiosError(err) && err.response
-        ? err.response.data
-        : { error: 'Bad Gateway', message: 'Could not reach target' };
+      const status =
+        axios.isAxiosError(err) && err.response ? err.response.status : 502;
+      const body =
+        axios.isAxiosError(err) && err.response
+          ? err.response.data
+          : { error: "Bad Gateway", message: "Could not reach target" };
 
       res.status(status).json(body);
 
@@ -116,10 +118,7 @@ export class ProxyMiddleware implements NestMiddleware {
         requestHeaders: this.proxyService.maskSensitiveHeaders(
           headers as Record<string, string>,
         ),
-        requestBody: this.proxyService.truncateForLog(
-          requestBody,
-          100 * 1024,
-        ),
+        requestBody: this.proxyService.truncateForLog(requestBody, 100 * 1024),
         responseStatus: status,
         responseHeaders: null,
         responseBody: null,
@@ -136,32 +135,30 @@ export class ProxyMiddleware implements NestMiddleware {
     path: string;
     isProxy: boolean;
   } {
-    const host = req.headers.host ?? '';
-    const path = (req.originalUrl ?? req.url ?? req.path ?? '').split('?')[0];
+    const host = req.headers.host ?? "";
+    const path = (req.originalUrl ?? req.url ?? req.path ?? "").split("?")[0];
     const pathMatch = path.match(/^\/r\/([a-z0-9]+)(\/.*)?$/i);
 
     if (pathMatch) {
       return {
         slug: pathMatch[1],
-        path: pathMatch[2] ?? '/',
+        path: pathMatch[2] ?? "/",
         isProxy: true,
       };
     }
 
-    const baseDomain = process.env.PROXY_BASE_DOMAIN ?? 'lvh.me';
-    const parts = host.split('.');
+    const baseDomain =
+      this.config.get<string>(`${ConfigKeyEnum.PROXY}.baseDomain`) ?? "lvh.me";
+    const parts = host.split(".");
     if (parts.length >= 2) {
       const subdomain = parts[0];
-      const rest = parts.slice(1).join('.');
-      if (
-        rest === baseDomain ||
-        rest.endsWith(`.${baseDomain}`)
-      ) {
-        const skip = ['www', 'api', 'app', 'dashboard'];
+      const rest = parts.slice(1).join(".");
+      if (rest === baseDomain || rest.endsWith(`.${baseDomain}`)) {
+        const skip = ["www", "api", "app", "dashboard"];
         if (!skip.includes(subdomain.toLowerCase())) {
           return {
             slug: subdomain,
-            path: path || '/',
+            path: path || "/",
             isProxy: true,
           };
         }
@@ -175,19 +172,19 @@ export class ProxyMiddleware implements NestMiddleware {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
       let size = 0;
-      req.on('data', (chunk: Buffer) => {
+      req.on("data", (chunk: Buffer) => {
         size += chunk.length;
         if (size > limit) {
           req.destroy();
-          reject(new Error('Body too large'));
+          reject(new Error("Body too large"));
           return;
         }
         chunks.push(chunk);
       });
-      req.on('end', () =>
+      req.on("end", () =>
         resolve(chunks.length ? Buffer.concat(chunks) : null),
       );
-      req.on('error', reject);
+      req.on("error", reject);
     });
   }
 }

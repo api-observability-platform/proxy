@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { EndpointsModule } from '../endpoints/endpoints.module';
-import { NotificationsModule } from '../notifications/notifications.module';
-import { ProxyMiddleware } from './proxy.middleware';
-import { ProxyService } from './proxy.service';
+import { Module } from "@nestjs/common";
+import { EndpointsModule } from "../modules/endpoints/endpoints.module";
+import { NotificationsModule } from "../modules/notifications/notifications.module";
+import { ProxyMiddleware } from "./proxy.middleware";
+import { ProxyService } from "./proxy.service";
 
 @Module({
   imports: [EndpointsModule, NotificationsModule],

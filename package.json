@@ -35,14 +35,21 @@
     "libs/shared"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^20.4.1",
-    "@commitlint/config-conventional": "^20.4.1",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@ls-lint/ls-lint": "^2.3.1",
     "concurrently": "^9.2.1",
     "editorconfig-checker": "^6.1.1",
-    "knip": "^5.83.0",
-    "lint-staged": "^16.2.7",
+    "knip": "^5.87.0",
+    "lint-staged": "^16.4.0",
     "simple-git-hooks": "^2.13.1",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@nestjs/config": "^4.0.3",
+    "@nestjs/swagger": "^11.2.6",
+    "@prisma/adapter-pg": "^7.5.0",
+    "helmet": "^8.1.0",
+    "joi": "^18.0.2"
   }
 }
