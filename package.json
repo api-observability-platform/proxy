@@ -4,8 +4,6 @@
 	"description": "Proxy Server",
 	"type": "module",
 	"scripts": {
-		"lint:clean:check": "knip",
-		"lint:fs:check": "ls-lint",
 		"docker:local:up": "docker compose -f docker-compose.local.yml up -d --no-color --timestamps --wait --wait-timeout 20",
 		"docker:local:down": "docker compose -f docker-compose.local.yml down -v",
 		"docker:local:start": "docker compose -f docker-compose.local.yml start",
@@ -14,12 +12,15 @@
 		"docker:prod:down": "docker compose -f docker-compose.prod.yml down -v",
 		"docker:prod:start": "docker compose -f docker-compose.prod.yml start",
 		"docker:prod:stop": "docker compose -f docker-compose.prod.yml stop -t 10",
-		"hooks:init": "simple-git-hooks",
-		"hooks:precommit": "lint-staged",
 		"lint:check": "biome lint",
 		"lint:fix": "biome lint --write",
 		"lint:format:check": "biome format",
-		"lint:format:fix": "biome format --write"
+		"lint:format:fix": "biome format --write",
+		"lint:clean:check": "knip",
+		"lint:fs:check": "ls-lint",
+		"hooks:init": "simple-git-hooks",
+		"hooks:precommit": "lint-staged",
+		"hooks:prepush": "concurrently 'npm run build -w apps/backend' 'npm run build -w apps/web'"
 	},
 	"repository": {
 		"type": "git",
@@ -37,6 +38,10 @@
 		"apps/backend",
 		"libs/shared"
 	],
+	"engines": {
+		"node": "22.22.0",
+		"npm": "10.9.4"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.7",
 		"@commitlint/cli": "^20.5.0",

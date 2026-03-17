@@ -11,5 +11,9 @@
 		"lint:fix": "biome lint --write",
 		"lint:format:check": "biome format",
 		"lint:format:fix": "biome format --write"
+	},
+	"engines": {
+		"node": "22.22.0",
+		"npm": "10.9.4"
 	}
 }
