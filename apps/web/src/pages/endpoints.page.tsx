@@ -1,37 +1,50 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { endpointsApi } from "../api/client.api";
+
+type EndpointRow = Awaited<ReturnType<typeof endpointsApi.list>>[number];
 
 export const EndpointsPage = () => {
 	const [name, setName] = useState("");
 	const [targetUrl, setTargetUrl] = useState("");
 	const [error, setError] = useState("");
-	const queryClient = useQueryClient();
+	const [endpoints, setEndpoints] = useState<EndpointRow[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [createPending, setCreatePending] = useState(false);
 
-	const { data: endpoints = [], isLoading } = useQuery({
-		queryKey: ["endpoints"],
-		queryFn: () => endpointsApi.list(),
-	});
+	const refreshEndpoints = () =>
+		endpointsApi.list().then((list) => setEndpoints(list));
 
-	const createMutation = useMutation({
-		mutationFn: (data: { name: string; targetUrl: string }) =>
-			endpointsApi.create(data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["endpoints"] });
-			setName("");
-			setTargetUrl("");
-			setError("");
-		},
-		onError: (err) => {
-			setError(err instanceof Error ? err.message : "Failed to create");
-		},
-	});
+	useEffect(() => {
+		let cancelled = false;
+		setIsLoading(true);
+		endpointsApi
+			.list()
+			.then((list) => {
+				if (!cancelled) setEndpoints(list);
+			})
+			.finally(() => {
+				if (!cancelled) setIsLoading(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError("");
-		createMutation.mutate({ name, targetUrl });
+		setCreatePending(true);
+		try {
+			await endpointsApi.create({ name, targetUrl });
+			setName("");
+			setTargetUrl("");
+			await refreshEndpoints();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to create");
+		} finally {
+			setCreatePending(false);
+		}
 	};
 
 	return (
@@ -72,10 +85,10 @@ export const EndpointsPage = () => {
 					</div>
 					<button
 						type="submit"
-						disabled={createMutation.isPending}
+						disabled={createPending}
 						className="border border-white px-4 py-2 font-medium hover:bg-white hover:text-black disabled:opacity-50"
 					>
-						{createMutation.isPending ? "Creating..." : "Create"}
+						{createPending ? "Creating..." : "Create"}
 					</button>
 				</form>
 			</div>

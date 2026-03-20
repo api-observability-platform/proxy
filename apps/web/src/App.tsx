@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/auth.context";
 import { LayoutComponent } from "./components/layout.component";
@@ -9,8 +8,6 @@ import { EndpointsPage } from "./pages/endpoints.page";
 import { EndpointDetailPage } from "./pages/endpoint-detail.page";
 import { LogsPage } from "./pages/logs.page";
 import { SettingsPage } from "./pages/settings.page";
-
-const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
 	const { user, isReady } = useAuth();
@@ -54,12 +51,10 @@ function AppRoutes() {
 
 export default function App() {
 	return (
-		<QueryClientProvider client={queryClient}>
-			<BrowserRouter>
-				<AuthProvider>
-					<AppRoutes />
-				</AuthProvider>
-			</BrowserRouter>
-		</QueryClientProvider>
+		<BrowserRouter>
+			<AuthProvider>
+				<AppRoutes />
+			</AuthProvider>
+		</BrowserRouter>
 	);
 }

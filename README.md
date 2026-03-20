@@ -13,7 +13,7 @@ A user-centric proxy, monitoring, and analytics platform for external APIs. Regi
 ## Tech Stack
 
 - **Backend**: NestJS, Prisma, PostgreSQL, JWT auth
-- **Frontend**: React, Vite, TanStack Query, Recharts, Tailwind CSS
+- **Frontend**: React, Vite, NodeJS fetch, Recharts, Tailwind CSS
 - **Infra**: Docker Compose (Postgres, Redis)
 
 ## Quick Start
@@ -132,61 +132,61 @@ Requests to `/r/{slug}/...` or `{slug}.your-domain.com/...` are proxied to the c
 
 2. **Install Node, Docker, Nginx, Certbot:**
 
-    ```bash
-    sudo apt update && sudo apt install -y nginx certbot python3-certbot-nginx docker.io
-    ```
+   ```bash
+   sudo apt update && sudo apt install -y nginx certbot python3-certbot-nginx docker.io
+   ```
 
 3. **DNS**: Add an A record for your domain (e.g. `proxy.example.com`) and a wildcard `*.proxy.example.com` pointing to the server IP.
 
 4. **Build and run:**
 
-    ```bash
-    npm run build -w apps/backend
-    npm run build -w apps/web
-    ```
+   ```bash
+   npm run build -w apps/backend
+   npm run build -w apps/web
+   ```
 
 5. **Nginx** – reverse proxy for API and frontend, SSL termination:
 
-    ```nginx
-    server {
-        listen 80;
-        server_name proxy.example.com *.proxy.example.com;
-        return 301 https://$host$request_uri;
-    }
-    server {
-        listen 443 ssl;
-        server_name proxy.example.com *.proxy.example.com;
-        ssl_certificate /etc/letsencrypt/live/proxy.example.com/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/proxy.example.com/privkey.pem;
+   ```nginx
+   server {
+       listen 80;
+       server_name proxy.example.com *.proxy.example.com;
+       return 301 https://$host$request_uri;
+   }
+   server {
+       listen 443 ssl;
+       server_name proxy.example.com *.proxy.example.com;
+       ssl_certificate /etc/letsencrypt/live/proxy.example.com/fullchain.pem;
+       ssl_certificate_key /etc/letsencrypt/live/proxy.example.com/privkey.pem;
 
-        location / {
-            proxy_pass http://localhost:5173;  # or serve static from apps/web/dist
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-        }
-        location ~ ^/(auth|endpoints|logs|analytics|notifications|r) {
-            proxy_pass http://localhost:3000;
-            proxy_http_version 1.1;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-    ```
+       location / {
+           proxy_pass http://localhost:5173;  # or serve static from apps/web/dist
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+       }
+       location ~ ^/(auth|endpoints|logs|analytics|notifications|r) {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
 
 6. **Wildcard SSL:**
 
-    ```bash
-    sudo certbot certonly --nginx -d proxy.example.com -d "*.proxy.example.com"
-    ```
+   ```bash
+   sudo certbot certonly --nginx -d proxy.example.com -d "*.proxy.example.com"
+   ```
 
 7. **Run backend** (e.g. with PM2):
 
-    ```bash
-    pm2 start dist/apps/backend/main.js --name api-observability
-    ```
+   ```bash
+   pm2 start dist/apps/backend/main.js --name api-observability
+   ```
 
 ## Project Structure
 

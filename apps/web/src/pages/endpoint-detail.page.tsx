@@ -1,5 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
 	Area,
@@ -12,43 +11,60 @@ import {
 } from "recharts";
 import { analyticsApi, endpointsApi, logsApi } from "../api/client.api";
 
+type EndpointDto = Awaited<ReturnType<typeof endpointsApi.get>>;
+type SummaryDto = Awaited<ReturnType<typeof analyticsApi.summary>>;
+type TimeseriesDto = Awaited<ReturnType<typeof analyticsApi.timeseries>>;
+type LogsEnvelope = Awaited<ReturnType<typeof logsApi.byEndpoint>>;
+
 export const EndpointDetailPage = () => {
 	const { id } = useParams<{ id: string }>();
-	const queryClient = useQueryClient();
 	const [copied, setCopied] = useState(false);
+	const [endpoint, setEndpoint] = useState<EndpointDto | undefined>(undefined);
+	const [isLoading, setIsLoading] = useState(true);
+	const [summary, setSummary] = useState<SummaryDto | undefined>(undefined);
+	const [timeseries, setTimeseries] = useState<TimeseriesDto>([]);
+	const [logsData, setLogsData] = useState<LogsEnvelope | undefined>(undefined);
+	const [updatePending, setUpdatePending] = useState(false);
 
-	const { data: endpoint, isLoading } = useQuery({
-		queryKey: ["endpoint", id],
-		queryFn: () => endpointsApi.get(id!),
-		enabled: !!id,
-	});
+	useEffect(() => {
+		if (!id) return;
+		let cancelled = false;
+		setIsLoading(true);
+		setEndpoint(undefined);
+		endpointsApi
+			.get(id)
+			.then((ep) => {
+				if (!cancelled) setEndpoint(ep);
+			})
+			.catch(() => {
+				if (!cancelled) setEndpoint(undefined);
+			})
+			.finally(() => {
+				if (!cancelled) setIsLoading(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [id]);
 
-	const { data: summary } = useQuery({
-		queryKey: ["analytics", "summary", id],
-		queryFn: () => analyticsApi.summary(id!),
-		enabled: !!id,
-	});
-
-	const { data: timeseries = [] } = useQuery({
-		queryKey: ["analytics", "timeseries", id],
-		queryFn: () => analyticsApi.timeseries(id!, { limit: 24 }),
-		enabled: !!id,
-	});
-
-	const { data: logsData } = useQuery({
-		queryKey: ["logs", id],
-		queryFn: () => logsApi.byEndpoint(id!, { limit: 20 }),
-		enabled: !!id,
-	});
-
-	const updateMutation = useMutation({
-		mutationFn: (data: { isActive?: boolean }) =>
-			endpointsApi.update(id!, data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["endpoint", id] });
-			queryClient.invalidateQueries({ queryKey: ["endpoints"] });
-		},
-	});
+	useEffect(() => {
+		if (!id || !endpoint) return;
+		let cancelled = false;
+		Promise.all([
+			analyticsApi.summary(id),
+			analyticsApi.timeseries(id, { limit: 24 }),
+			logsApi.byEndpoint(id, { limit: 20 }),
+		]).then(([s, ts, lg]) => {
+			if (!cancelled) {
+				setSummary(s);
+				setTimeseries(ts);
+				setLogsData(lg);
+			}
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, [id, endpoint]);
 
 	const apiBase =
 		import.meta.env.VITE_API_URL ??
@@ -92,10 +108,19 @@ export const EndpointDetailPage = () => {
 					<h1 className="mt-2 text-2xl font-medium">{endpoint.name}</h1>
 				</div>
 				<button
-					onClick={() =>
-						updateMutation.mutate({ isActive: !endpoint.isActive })
-					}
-					disabled={updateMutation.isPending}
+					onClick={async () => {
+						if (!id) return;
+						setUpdatePending(true);
+						try {
+							const updated = await endpointsApi.update(id, {
+								isActive: !endpoint.isActive,
+							});
+							setEndpoint(updated);
+						} finally {
+							setUpdatePending(false);
+						}
+					}}
+					disabled={updatePending}
 					className="border border-white/40 px-4 py-2 text-sm font-medium hover:bg-white hover:text-black disabled:opacity-50"
 				>
 					{endpoint.isActive ? "Deactivate" : "Activate"}

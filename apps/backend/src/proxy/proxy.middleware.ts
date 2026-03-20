@@ -1,6 +1,5 @@
 import { Inject, Injectable, type NestMiddleware } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import axios from "axios";
 import type { NextFunction, Request, Response } from "express";
 import { ConfigKeyEnum } from "../common/enums/config.enum";
 import { ProxyService } from "./proxy.service";
@@ -54,28 +53,40 @@ export class ProxyMiddleware implements NestMiddleware {
 			targetHost,
 		);
 
-		const axiosConfig: import("axios").AxiosRequestConfig = {
-			method: req.method,
-			url: targetUrl,
-			headers,
-			data: requestBody?.length ? requestBody : undefined,
-			maxBodyLength: BODY_LIMIT,
-			maxContentLength: BODY_LIMIT,
-			validateStatus: () => true,
-			timeout: 30000,
-		};
+		const method = req.method ?? "GET";
+		const bodyAllowed = !["GET", "HEAD"].includes(method.toUpperCase());
+		const upstreamBody: BodyInit | undefined =
+			bodyAllowed && requestBody?.length
+				? Uint8Array.from(requestBody)
+				: undefined;
 
 		try {
-			const response = await axios(axiosConfig);
-			const durationMs = Date.now() - startTime;
+			const upstream = await fetch(targetUrl, {
+				method,
+				headers,
+				body: upstreamBody,
+				signal: AbortSignal.timeout(30_000),
+			});
 
-			res.status(response.status);
-			for (const [key, value] of Object.entries(response.headers)) {
-				const skip = ["transfer-encoding", "content-encoding", "connection"];
-				if (skip.includes(key.toLowerCase())) continue;
-				if (typeof value === "string") res.setHeader(key, value);
-			}
-			res.send(response.data);
+			const durationMs = Date.now() - startTime;
+			const responseBuffer = Buffer.from(await upstream.arrayBuffer());
+
+			res.status(upstream.status);
+			const hopByHop = new Set([
+				"transfer-encoding",
+				"content-encoding",
+				"connection",
+			]);
+			upstream.headers.forEach((value, key) => {
+				if (hopByHop.has(key.toLowerCase())) return;
+				res.setHeader(key, value);
+			});
+			res.send(responseBuffer);
+
+			const responseHeadersObj: Record<string, string> = {};
+			upstream.headers.forEach((value, key) => {
+				responseHeadersObj[key] = value;
+			});
 
 			this.proxyService.logRequest({
 				endpointId: endpoint.id,
@@ -86,12 +97,11 @@ export class ProxyMiddleware implements NestMiddleware {
 					headers as Record<string, string>,
 				),
 				requestBody: this.proxyService.truncateForLog(requestBody, 100 * 1024),
-				responseStatus: response.status,
-				responseHeaders: this.proxyService.maskSensitiveHeaders(
-					response.headers as Record<string, string>,
-				),
+				responseStatus: upstream.status,
+				responseHeaders:
+					this.proxyService.maskSensitiveHeaders(responseHeadersObj),
 				responseBody: this.proxyService.truncateForLog(
-					response.data,
+					responseBuffer,
 					100 * 1024,
 				),
 				durationMs,
@@ -99,14 +109,13 @@ export class ProxyMiddleware implements NestMiddleware {
 					req.headers as Record<string, string | string[] | undefined>,
 				),
 			});
-		} catch (err) {
+		} catch {
 			const durationMs = Date.now() - startTime;
-			const status =
-				axios.isAxiosError(err) && err.response ? err.response.status : 502;
-			const body =
-				axios.isAxiosError(err) && err.response
-					? err.response.data
-					: { error: "Bad Gateway", message: "Could not reach target" };
+			const status = 502;
+			const body = {
+				error: "Bad Gateway",
+				message: "Could not reach target",
+			};
 
 			res.status(status).json(body);
 

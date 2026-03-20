@@ -53,12 +53,5 @@
 		"lint-staged": "^16.4.0",
 		"simple-git-hooks": "^2.13.1",
 		"typescript": "^5.9.3"
-	},
-	"dependencies": {
-		"@nestjs/config": "^4.0.3",
-		"@nestjs/swagger": "^11.2.6",
-		"@prisma/adapter-pg": "^7.5.0",
-		"helmet": "^8.1.0",
-		"joi": "^18.0.2"
 	}
 }

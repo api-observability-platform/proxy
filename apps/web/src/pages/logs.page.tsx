@@ -1,20 +1,46 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { endpointsApi, logsApi } from "../api/client.api";
 
+type EndpointRow = Awaited<ReturnType<typeof endpointsApi.list>>[number];
+type LogsEnvelope = Awaited<ReturnType<typeof logsApi.byEndpoint>>;
+
 export const LogsPage = () => {
 	const { endpointId } = useParams<{ endpointId?: string }>();
+	const [endpoints, setEndpoints] = useState<EndpointRow[]>([]);
+	const [data, setData] = useState<LogsEnvelope | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
 
-	const { data: endpoints = [] } = useQuery({
-		queryKey: ["endpoints"],
-		queryFn: () => endpointsApi.list(),
-	});
+	useEffect(() => {
+		let cancelled = false;
+		endpointsApi.list().then((list) => {
+			if (!cancelled) setEndpoints(list);
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
-	const { data, isLoading } = useQuery({
-		queryKey: ["logs", endpointId],
-		queryFn: () => logsApi.byEndpoint(endpointId!, { limit: 50 }),
-		enabled: !!endpointId,
-	});
+	useEffect(() => {
+		if (!endpointId) {
+			setData(null);
+			setIsLoading(false);
+			return;
+		}
+		let cancelled = false;
+		setIsLoading(true);
+		logsApi
+			.byEndpoint(endpointId, { limit: 50 })
+			.then((res) => {
+				if (!cancelled) setData(res);
+			})
+			.finally(() => {
+				if (!cancelled) setIsLoading(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [endpointId]);
 
 	if (!endpointId) {
 		return (

@@ -1,12 +1,28 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { endpointsApi } from "../api/client.api";
 
+type EndpointRow = Awaited<ReturnType<typeof endpointsApi.list>>[number];
+
 export const DashboardPage = () => {
-	const { data: endpoints = [], isLoading } = useQuery({
-		queryKey: ["endpoints"],
-		queryFn: () => endpointsApi.list(),
-	});
+	const [endpoints, setEndpoints] = useState<EndpointRow[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		let cancelled = false;
+		setIsLoading(true);
+		endpointsApi
+			.list()
+			.then((list) => {
+				if (!cancelled) setEndpoints(list);
+			})
+			.finally(() => {
+				if (!cancelled) setIsLoading(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
 	return (
 		<div className="space-y-8">
