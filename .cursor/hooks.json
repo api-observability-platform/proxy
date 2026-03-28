@@ -1,0 +1,18 @@
+{
+	"version": 1,
+	"hooks": {
+		"sessionEnd": [
+			{
+				"command": "./hooks/audit.sh"
+			}
+		],
+		"afterFileEdit": [
+			{
+				"command": "npm run lint:check"
+			},
+			{
+				"command": "npm run lint:format:check"
+			}
+		]
+	}
+}
