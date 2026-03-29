@@ -49,6 +49,7 @@ import { ProxyModule } from "./proxy/proxy.module";
 	],
 	providers: [
 		CorrelationIdMiddleware,
+		ProxyMiddleware,
 		{ provide: APP_GUARD, useClass: ThrottlerGuard },
 		{ provide: APP_GUARD, useClass: JwtAuthGuard },
 	],

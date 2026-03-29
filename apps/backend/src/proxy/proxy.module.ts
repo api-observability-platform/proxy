@@ -5,7 +5,6 @@ import { GraphqlProxyHandler } from "./handlers/graphql-proxy.handler.js";
 import { HttpProxyHandler } from "./handlers/http-proxy.handler.js";
 import { SseProxyHandler } from "./handlers/sse-proxy.handler.js";
 import { GrpcForwardProxyService } from "./grpc-forward-proxy.service.js";
-import { ProxyMiddleware } from "./proxy.middleware";
 import { ProxyRateLimitService } from "./proxy-rate-limit.service.js";
 import { ProxyService } from "./proxy.service";
 import { TcpProxyService } from "./tcp-proxy.service.js";
@@ -27,13 +26,15 @@ import { WebSocketProxyService } from "./websocket-proxy.service.js";
 		WebSocketProxyService,
 		TcpProxyService,
 		GrpcForwardProxyService,
-		ProxyMiddleware,
 	],
 	exports: [
 		ProxyService,
 		TransformPipelineService,
 		ProxyRateLimitService,
 		WebSocketProxyService,
+		HttpProxyHandler,
+		GraphqlProxyHandler,
+		SseProxyHandler,
 	],
 })
 export class ProxyModule {}

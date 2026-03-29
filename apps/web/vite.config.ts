@@ -36,11 +36,23 @@ const proxyPaths = [
 	"/integrations",
 ];
 
+const sharedSrcIndex = path.resolve(
+	__dirname,
+	"../../libs/shared/src/index.ts",
+);
+
 export default defineConfig({
+	/** Load `VITE_*` from the monorepo root `.env` when running `npm run dev -w apps/web`. */
+	envDir: path.resolve(__dirname, "../.."),
 	plugins: [react(), tailwindcss()],
+	optimizeDeps: {
+		exclude: ["@proxy-server/shared"],
+	},
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "src"),
+			/** Bundled as ESM from source — avoids Vite mis-reading CJS `exports` from `dist/`. */
+			"@proxy-server/shared": sharedSrcIndex,
 		},
 	},
 	server: {

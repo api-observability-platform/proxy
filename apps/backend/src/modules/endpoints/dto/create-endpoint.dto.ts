@@ -1,4 +1,3 @@
-import { ENDPOINT_PROTOCOLS } from "@proxy-server/shared";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -16,6 +15,7 @@ import {
 } from "class-validator";
 import { RateLimitConfigDto } from "./rate-limit-config.dto";
 import { TransformRuleDto } from "./transform-rule.dto";
+import { ENDPOINT_PROTOCOLS } from "@proxy-server/shared";
 
 /** HTTP body for creating a proxy endpoint. */
 export class CreateEndpointDto {
