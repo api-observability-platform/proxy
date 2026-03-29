@@ -18,7 +18,90 @@ import type { UserDto } from "@proxy-server/shared";
 
 const AUTH_SESSION_QUERY_KEY = ["auth", "session"] as const;
 
+const SESSION_STORAGE_KEY = "proxy-server.session";
+/** Legacy key (token only); migrated to full session JSON on next write. */
+const LEGACY_ACCESS_TOKEN_KEY = "proxy-server.accessToken";
+
 type AuthSession = { accessToken: string; user: UserDto } | null;
+
+function parseStoredUser(value: unknown): UserDto | null {
+	if (!value || typeof value !== "object") {
+		return null;
+	}
+	const o = value as Record<string, unknown>;
+	if (typeof o.id !== "string" || typeof o.email !== "string") {
+		return null;
+	}
+	if (o.name !== null && typeof o.name !== "string") {
+		return null;
+	}
+	return { id: o.id, email: o.email, name: o.name as string | null };
+}
+
+/** Valid non-null session from storage, or undefined if missing/invalid. */
+function readStoredSession(): AuthSession | undefined {
+	if (typeof sessionStorage === "undefined") {
+		return undefined;
+	}
+	try {
+		const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+		if (!raw) {
+			return undefined;
+		}
+		const parsed: unknown = JSON.parse(raw);
+		if (!parsed || typeof parsed !== "object") {
+			return undefined;
+		}
+		const o = parsed as Record<string, unknown>;
+		if (typeof o.accessToken !== "string" || o.accessToken.length === 0) {
+			return undefined;
+		}
+		const user = parseStoredUser(o.user);
+		if (!user) {
+			return undefined;
+		}
+		return { accessToken: o.accessToken, user };
+	} catch {
+		return undefined;
+	}
+}
+
+function readLegacyAccessTokenOnly(): string | null {
+	if (typeof sessionStorage === "undefined") {
+		return null;
+	}
+	try {
+		const t = sessionStorage.getItem(LEGACY_ACCESS_TOKEN_KEY);
+		return t && t.length > 0 ? t : null;
+	} catch {
+		return null;
+	}
+}
+
+/** Bootstrap ref: full session token, or legacy token while refresh loads user. */
+function readBootstrapAccessToken(): string | null {
+	const full = readStoredSession();
+	if (full) {
+		return full.accessToken;
+	}
+	return readLegacyAccessTokenOnly();
+}
+
+function writeStoredSession(session: AuthSession): void {
+	if (typeof sessionStorage === "undefined") {
+		return;
+	}
+	try {
+		sessionStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
+		if (session?.accessToken && session.user) {
+			sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+		} else {
+			sessionStorage.removeItem(SESSION_STORAGE_KEY);
+		}
+	} catch {
+		/* ignore quota / privacy mode */
+	}
+}
 
 interface AuthContextValue {
 	user: UserDto | null;
@@ -35,28 +118,37 @@ const ACCESS_REFRESH_MS = 14 * 60 * 1000;
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
-	const accessTokenRef = useRef<string | null>(null);
+	const accessTokenRef = useRef<string | null>(readBootstrapAccessToken());
 	const sessionQuery = useQuery({
 		queryKey: AUTH_SESSION_QUERY_KEY,
 		queryFn: async (): Promise<AuthSession> => refreshAccessToken(),
 		refetchInterval: (query) => {
 			const data = query.state.data;
-			if (data?.accessToken) return ACCESS_REFRESH_MS;
+			if (data?.accessToken) {
+				return ACCESS_REFRESH_MS;
+			}
 			return false;
 		},
 		staleTime: 0,
+		refetchOnWindowFocus: false,
 	});
 	const session = sessionQuery.data;
 	const user = session?.user ?? null;
 	const accessToken = session?.accessToken ?? null;
+	/**
+	 * No `initialData`: first paint stays `pending` until `/auth/refresh` resolves, so `isPending`
+	 * is a reliable gate. (`initialData` forces `status: success` and breaks that gate.)
+	 */
 	const isReady = !sessionQuery.isPending;
-	useLayoutEffect(() => {
-		if (sessionQuery.data === undefined) return;
-		accessTokenRef.current = sessionQuery.data?.accessToken ?? null;
-	}, [sessionQuery.data]);
+	if (sessionQuery.data !== undefined) {
+		const nextToken = sessionQuery.data?.accessToken ?? null;
+		accessTokenRef.current = nextToken;
+		writeStoredSession(sessionQuery.data ?? null);
+	}
 	const setSession = useCallback(
 		(token: string, u: UserDto) => {
 			accessTokenRef.current = token;
+			writeStoredSession({ accessToken: token, user: u });
 			queryClient.setQueryData<AuthSession>(AUTH_SESSION_QUERY_KEY, {
 				accessToken: token,
 				user: u,
@@ -66,6 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	);
 	const clearSession = useCallback(() => {
 		accessTokenRef.current = null;
+		writeStoredSession(null);
 		queryClient.setQueryData<AuthSession>(AUTH_SESSION_QUERY_KEY, null);
 	}, [queryClient]);
 	const onSessionExpired = useCallback(() => {
@@ -78,6 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			setSession: (token, u) => {
 				if (token && u) {
 					accessTokenRef.current = token;
+					writeStoredSession({ accessToken: token, user: u });
 					queryClient.setQueryData<AuthSession>(AUTH_SESSION_QUERY_KEY, {
 						accessToken: token,
 						user: u,
@@ -115,6 +209,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
 	const ctx = useContext(AuthContext);
-	if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+	if (!ctx) {
+		throw new Error("useAuth must be used within AuthProvider");
+	}
 	return ctx;
 };
+
+/**
+ * Use as TanStack Query `enabled` for calls that need a hydrated access token after reload.
+ */
+export function useCanQueryProtectedApi(): boolean {
+	const { isReady, accessToken } = useAuth();
+	return isReady && Boolean(accessToken);
+}

@@ -74,16 +74,35 @@ async function parseResponse<T>(res: Response): Promise<T> {
 	}
 }
 
-export async function refreshAccessToken(): Promise<{
-	accessToken: string;
-	user: UserDto;
-} | null> {
-	const res = await fetch(`${API_BASE}/auth/refresh`, {
-		method: "POST",
-		credentials: "include",
+type RefreshSessionResult = { accessToken: string; user: UserDto } | null;
+
+/**
+ * Single in-flight refresh so parallel 401s do not rotate the refresh token
+ * multiple times (which would revoke the cookie mid-flight and fail later calls).
+ */
+let refreshInFlight: Promise<RefreshSessionResult> | null = null;
+
+export async function refreshAccessToken(): Promise<RefreshSessionResult> {
+	if (refreshInFlight !== null) {
+		return refreshInFlight;
+	}
+	refreshInFlight = (async (): Promise<RefreshSessionResult> => {
+		try {
+			const res = await fetch(`${API_BASE}/auth/refresh`, {
+				method: "POST",
+				credentials: "include",
+			});
+			if (!res.ok) {
+				return null;
+			}
+			return await parseResponse<{ accessToken: string; user: UserDto }>(res);
+		} catch {
+			return null;
+		}
+	})().finally(() => {
+		refreshInFlight = null;
 	});
-	if (!res.ok) return null;
-	return parseResponse<{ accessToken: string; user: UserDto }>(res);
+	return refreshInFlight;
 }
 
 async function api<T>(

@@ -104,7 +104,7 @@ export class AnalyticsService {
 					COUNT(*)::bigint AS requests,
 					COALESCE(ROUND(AVG("duration_ms"))::bigint, 0) AS "avgLatencyMs"
 				FROM "request_logs"
-				WHERE "endpoint_id" = $2::uuid
+				WHERE "endpoint_id" = $2
 				GROUP BY 1
 				ORDER BY 1 DESC
 				LIMIT $3

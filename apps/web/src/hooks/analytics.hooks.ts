@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { analyticsApi } from "@/api/client.api";
+import { useCanQueryProtectedApi } from "@/contexts/auth.context";
+
+/** Poll while viewing an endpoint so proxy traffic from other tabs shows up without manual reload. */
+const ANALYTICS_POLL_MS = 10_000;
 
 const analyticsQueryKeys = {
 	summary: (endpointId: string | undefined) =>
@@ -11,10 +15,14 @@ const analyticsQueryKeys = {
 };
 
 export function useAnalyticsSummary(endpointId: string | undefined) {
+	const canQuery = useCanQueryProtectedApi();
 	return useQuery({
 		queryKey: analyticsQueryKeys.summary(endpointId),
 		queryFn: () => analyticsApi.summary(endpointId!),
-		enabled: Boolean(endpointId),
+		enabled: canQuery && Boolean(endpointId),
+		staleTime: 5_000,
+		refetchOnWindowFocus: true,
+		refetchInterval: endpointId ? ANALYTICS_POLL_MS : false,
 	});
 }
 
@@ -22,9 +30,13 @@ export function useAnalyticsTimeseries(
 	endpointId: string | undefined,
 	params?: { bucket?: "hour" | "day"; limit?: number },
 ) {
+	const canQuery = useCanQueryProtectedApi();
 	return useQuery({
 		queryKey: analyticsQueryKeys.timeseries(endpointId, params),
 		queryFn: () => analyticsApi.timeseries(endpointId!, params),
-		enabled: Boolean(endpointId),
+		enabled: canQuery && Boolean(endpointId),
+		staleTime: 5_000,
+		refetchOnWindowFocus: true,
+		refetchInterval: endpointId ? ANALYTICS_POLL_MS : false,
 	});
 }
