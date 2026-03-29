@@ -9,6 +9,7 @@ import { DashboardPage } from "@/pages/dashboard.page";
 import { EndpointDetailPage } from "@/pages/endpoint-detail.page";
 import { EndpointsPage } from "@/pages/endpoints.page";
 import { ForgotPasswordPage } from "@/pages/forgot-password.page";
+import { IntegrationsPage } from "@/pages/integrations.page";
 import { LoginPage } from "@/pages/login.page";
 import { LogsPage } from "@/pages/logs.page";
 import { RegisterPage } from "@/pages/register.page";
@@ -66,6 +67,7 @@ function AppRoutes() {
 				<Route path="logs" element={<LogsPage />} />
 				<Route path="logs/:endpointId" element={<LogsPage />} />
 				<Route path="settings" element={<SettingsPage />} />
+				<Route path="integrations" element={<IntegrationsPage />} />
 			</Route>
 			<Route path="*" element={<Navigate to="/" replace />} />
 		</Routes>

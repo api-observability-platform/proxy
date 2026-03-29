@@ -33,6 +33,7 @@ const proxyPaths = [
 	"/analytics",
 	"/r",
 	"/notifications",
+	"/integrations",
 ];
 
 export default defineConfig({

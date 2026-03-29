@@ -28,6 +28,9 @@ export const LayoutComponent = () => {
 						<Link to="/settings" className="text-white/60 hover:text-white">
 							Settings
 						</Link>
+						<Link to="/integrations" className="text-white/60 hover:text-white">
+							Integrations
+						</Link>
 					</div>
 					<div className="flex items-center gap-4">
 						<span className="text-sm text-white/60">{user?.email}</span>

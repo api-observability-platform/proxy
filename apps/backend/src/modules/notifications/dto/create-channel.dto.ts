@@ -7,7 +7,7 @@ import {
 	type ValidationOptions,
 } from "class-validator";
 
-const CHANNEL_TYPES = ["TELEGRAM", "SLACK"] as const;
+const CHANNEL_TYPES = ["TELEGRAM", "SLACK", "EMAIL"] as const;
 type ChannelType = (typeof CHANNEL_TYPES)[number];
 
 function IsChannelConfig(validationOptions?: ValidationOptions) {
@@ -38,6 +38,16 @@ function IsChannelConfig(validationOptions?: ValidationOptions) {
 							c.webhookUrl.startsWith("https://")
 						);
 					}
+					if (type === "EMAIL") {
+						if (typeof c.email === "string" && c.email.includes("@")) {
+							return true;
+						}
+						return (
+							Array.isArray(c.emails) &&
+							c.emails.length > 0 &&
+							c.emails.every((e) => typeof e === "string" && e.includes("@"))
+						);
+					}
 					return false;
 				},
 				defaultMessage(args: ValidationArguments) {
@@ -47,6 +57,9 @@ function IsChannelConfig(validationOptions?: ValidationOptions) {
 					}
 					if (type === "SLACK") {
 						return "Slack config must include webhookUrl (https URL)";
+					}
+					if (type === "EMAIL") {
+						return "Email config must include email (string) or emails (string[])";
 					}
 					return "Invalid channel config";
 				},
@@ -67,7 +80,7 @@ export class CreateChannelDto {
 
 	@ApiProperty({
 		description:
-			"Channel-specific configuration. For TELEGRAM: { botToken, chatId }. For SLACK: { webhookUrl }",
+			"Channel-specific configuration. TELEGRAM: { botToken, chatId }. SLACK: { webhookUrl }. EMAIL: { email } or { emails: [] }",
 		example: { botToken: "1234567890:AAH...", chatId: "-1001234567890" },
 	})
 	@IsObject()

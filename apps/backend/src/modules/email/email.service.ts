@@ -114,4 +114,23 @@ export class EmailService {
 			throw err;
 		}
 	}
+
+	async sendAlertEmail(
+		to: string,
+		subject: string,
+		text: string,
+		html: string,
+	): Promise<void> {
+		if (!this.transporter) {
+			this.logger.warn(`SMTP not configured — alert email to ${to}: ${text}`);
+			return;
+		}
+		await this.transporter.sendMail({
+			from: this.from,
+			to,
+			subject,
+			text,
+			html,
+		});
+	}
 }

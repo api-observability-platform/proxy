@@ -1,4 +1,13 @@
-import { Controller, Get, Inject, Param, Query } from "@nestjs/common";
+import {
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Inject,
+	Param,
+	Post,
+	Query,
+} from "@nestjs/common";
 import {
 	ApiBearerAuth,
 	ApiForbiddenResponse,
@@ -123,5 +132,23 @@ export class LogsController {
 		@CurrentUser() user: CurrentUserPayload,
 	): ReturnType<LogsService["findOne"]> {
 		return this.logsService.findOne(id, user.id);
+	}
+
+	@Post(":id/replay")
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({
+		summary: "Replay a logged request",
+		description:
+			"Re-issues the stored request to the endpoint target and appends a new log entry.",
+	})
+	@ApiParam({ name: "id", description: "Original log UUID", format: "uuid" })
+	@ApiOkResponse({
+		description: "Replay result with new log id and upstream response snapshot",
+	})
+	replay(
+		@Param("id") id: string,
+		@CurrentUser() user: CurrentUserPayload,
+	): ReturnType<LogsService["replay"]> {
+		return this.logsService.replay(id, user.id);
 	}
 }

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { ENDPOINT_PROTOCOLS } from "@proxy-server/shared";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
 	Area,
@@ -12,18 +13,26 @@ import {
 import { RequestLogsTableComponent } from "@/components/request-logs-table.component";
 import { ButtonComponent } from "@/components/ui/button.component";
 import { CardComponent } from "@/components/ui/card.component";
+import { InputComponent } from "@/components/ui/input.component";
 import {
 	useAnalyticsSummary,
 	useAnalyticsTimeseries,
 } from "@/hooks/analytics.hooks";
 import { useEndpointDetail, useUpdateEndpoint } from "@/hooks/endpoints.hooks";
-import { useLogsByEndpoint } from "@/hooks/logs.hooks";
+import { useLogsByEndpoint, useReplayLog } from "@/hooks/logs.hooks";
 import { getWebEnv } from "@/env";
 
 export const EndpointDetailPage = () => {
 	const { id } = useParams<{ id: string }>();
 	const [copied, setCopied] = useState(false);
 	const [toggleError, setToggleError] = useState<string | null>(null);
+	const [advProtocol, setAdvProtocol] =
+		useState<(typeof ENDPOINT_PROTOCOLS)[number]>("HTTP");
+	const [rateMax, setRateMax] = useState("");
+	const [rateWindowSec, setRateWindowSec] = useState("");
+	const [transformJson, setTransformJson] = useState("");
+	const [advError, setAdvError] = useState<string | null>(null);
+	const [replayMsg, setReplayMsg] = useState<string | null>(null);
 	const {
 		data: endpoint,
 		isLoading: epLoading,
@@ -49,6 +58,7 @@ export const EndpointDetailPage = () => {
 		isLoading: logsLoading,
 	} = useLogsByEndpoint(id, { limit: 20 });
 	const updateMutation = useUpdateEndpoint();
+	const replayMutation = useReplayLog(id);
 
 	const apiBase = getWebEnv().publicApiOrigin;
 	const proxyUrl = endpoint ? `${apiBase}/r/${endpoint.slug}` : "";
@@ -57,6 +67,89 @@ export const EndpointDetailPage = () => {
 		void navigator.clipboard.writeText(proxyUrl);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
+	};
+
+	useEffect(() => {
+		if (!endpoint) return;
+		setAdvProtocol(endpoint.protocol);
+		setTransformJson(
+			endpoint.transformRules
+				? JSON.stringify(endpoint.transformRules, null, 2)
+				: "",
+		);
+		if (endpoint.rateLimitConfig) {
+			setRateMax(String(endpoint.rateLimitConfig.maxRequests));
+			setRateWindowSec(String(endpoint.rateLimitConfig.windowSeconds));
+		} else {
+			setRateMax("");
+			setRateWindowSec("");
+		}
+	}, [endpoint]);
+
+	const handleSaveAdvancedClick = async () => {
+		if (!id || !endpoint) return;
+		setAdvError(null);
+		let transformRules: unknown;
+		if (transformJson.trim()) {
+			try {
+				transformRules = JSON.parse(transformJson) as unknown;
+				if (!Array.isArray(transformRules)) {
+					setAdvError("Transform rules must be a JSON array");
+					return;
+				}
+			} catch {
+				setAdvError("Invalid JSON for transform rules");
+				return;
+			}
+		}
+		const rateLimitConfig =
+			rateMax.trim() && rateWindowSec.trim()
+				? {
+						maxRequests: Number.parseInt(rateMax, 10),
+						windowSeconds: Number.parseInt(rateWindowSec, 10),
+					}
+				: null;
+		if (
+			rateLimitConfig &&
+			(!Number.isFinite(rateLimitConfig.maxRequests) ||
+				!Number.isFinite(rateLimitConfig.windowSeconds))
+		) {
+			setAdvError("Invalid rate limit");
+			return;
+		}
+		try {
+			await updateMutation.mutateAsync({
+				id,
+				data: {
+					protocol: advProtocol,
+					...(rateLimitConfig
+						? { rateLimitConfig }
+						: { rateLimitConfig: null }),
+					transformRules:
+						transformJson.trim() && transformRules
+							? (transformRules as never)
+							: null,
+				},
+			});
+		} catch (err) {
+			setAdvError(
+				err instanceof Error ? err.message : "Failed to save advanced settings",
+			);
+		}
+	};
+
+	const handleReplayLog = (logId: string) => {
+		setReplayMsg(null);
+		replayMutation.mutate(logId, {
+			onSuccess: (r) => {
+				setReplayMsg(
+					`Replay complete — new log ${r.newLogId}, status ${r.responseStatus}`,
+				);
+			},
+			onError: (err) => {
+				setReplayMsg(err instanceof Error ? err.message : "Replay failed");
+			},
+		});
 	};
 
 	const handleToggleActiveClick = async () => {
@@ -146,6 +239,82 @@ export const EndpointDetailPage = () => {
 				<p className="mt-2 text-sm text-white/60">
 					Target: {endpoint.targetUrl}
 				</p>
+				<p className="mt-1 text-sm text-white/60">
+					Protocol: <span className="text-white">{endpoint.protocol}</span>
+					{endpoint.tcpProxyPort != null ? (
+						<span className="ml-2">TCP port: {endpoint.tcpProxyPort}</span>
+					) : null}
+				</p>
+			</CardComponent>
+
+			<CardComponent>
+				<h2 className="mb-4 text-lg font-medium">Routing & limits</h2>
+				{advError ? (
+					<p className="mb-2 text-sm text-red-400/90" role="alert">
+						{advError}
+					</p>
+				) : null}
+				<div className="space-y-4">
+					<div className="space-y-2">
+						<label htmlFor="adv-protocol" className="text-sm text-white/80">
+							Protocol
+						</label>
+						<select
+							id="adv-protocol"
+							value={advProtocol}
+							onChange={(e) =>
+								setAdvProtocol(
+									e.target.value as (typeof ENDPOINT_PROTOCOLS)[number],
+								)
+							}
+							className="w-full border border-white/30 bg-black px-3 py-2 text-white"
+						>
+							{ENDPOINT_PROTOCOLS.map((p) => (
+								<option key={p} value={p}>
+									{p}
+								</option>
+							))}
+						</select>
+					</div>
+					<div className="grid gap-4 md:grid-cols-2">
+						<InputComponent
+							label="Rate limit max requests"
+							type="number"
+							name="rateMax"
+							value={rateMax}
+							onChange={(e) => setRateMax(e.target.value)}
+							placeholder="leave empty to clear"
+						/>
+						<InputComponent
+							label="Rate limit window (sec)"
+							type="number"
+							name="rateWindow"
+							value={rateWindowSec}
+							onChange={(e) => setRateWindowSec(e.target.value)}
+							placeholder="leave empty to clear"
+						/>
+					</div>
+					<div className="space-y-2">
+						<label htmlFor="adv-transforms" className="text-sm text-white/80">
+							Transform rules JSON
+						</label>
+						<textarea
+							id="adv-transforms"
+							name="advTransforms"
+							value={transformJson}
+							onChange={(e) => setTransformJson(e.target.value)}
+							rows={5}
+							className="w-full border border-white/30 bg-black px-3 py-2 font-mono text-sm text-white"
+						/>
+					</div>
+					<ButtonComponent
+						type="button"
+						onClick={() => void handleSaveAdvancedClick()}
+						disabled={updateMutation.isPending}
+					>
+						{updateMutation.isPending ? "Saving…" : "Save routing settings"}
+					</ButtonComponent>
+				</div>
 			</CardComponent>
 
 			{summaryError ? (
@@ -239,6 +408,11 @@ export const EndpointDetailPage = () => {
 
 			<CardComponent>
 				<h2 className="mb-4 text-lg font-medium">Recent requests</h2>
+				{replayMsg ? (
+					<p className="mb-2 text-sm text-white/80" role="status">
+						{replayMsg}
+					</p>
+				) : null}
 				{logsError ? (
 					<p className="text-red-400/90" role="alert">
 						{logsErr instanceof Error ? logsErr.message : "Failed to load logs"}
@@ -248,7 +422,10 @@ export const EndpointDetailPage = () => {
 						Loading logs...
 					</p>
 				) : (
-					<RequestLogsTableComponent logs={logsData?.logs ?? []} />
+					<RequestLogsTableComponent
+						logs={logsData?.logs ?? []}
+						onReplay={handleReplayLog}
+					/>
 				)}
 			</CardComponent>
 		</div>

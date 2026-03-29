@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { RequestLogsTableComponent } from "@/components/request-logs-table.component";
 import { LoadingSkeletonComponent } from "@/components/ui/loading-skeleton.component";
 import { useEndpointsList } from "@/hooks/endpoints.hooks";
-import { useLogsByEndpoint } from "@/hooks/logs.hooks";
+import { useLogsByEndpoint, useReplayLog } from "@/hooks/logs.hooks";
 
 export const LogsPage = () => {
 	const { endpointId } = useParams<{ endpointId?: string }>();
@@ -16,6 +17,20 @@ export const LogsPage = () => {
 	const { data, isLoading, isError, error } = useLogsByEndpoint(endpointId, {
 		limit: 50,
 	});
+	const replayMutation = useReplayLog(endpointId);
+	const [replayMsg, setReplayMsg] = useState<string | null>(null);
+
+	const handleReplay = (logId: string) => {
+		setReplayMsg(null);
+		replayMutation.mutate(logId, {
+			onSuccess: (r) =>
+				setReplayMsg(
+					`Replay OK — new log ${r.newLogId} status ${r.responseStatus}`,
+				),
+			onError: (err) =>
+				setReplayMsg(err instanceof Error ? err.message : "Replay failed"),
+		});
+	};
 
 	if (!endpointId) {
 		return (
@@ -78,8 +93,13 @@ export const LogsPage = () => {
 		<div className="space-y-6">
 			<h1 className="text-2xl font-medium">Request logs</h1>
 			<p className="text-white/60">{total} total requests</p>
+			{replayMsg ? (
+				<p className="text-sm text-white/80" role="status">
+					{replayMsg}
+				</p>
+			) : null}
 			<div className="overflow-hidden border border-white/20">
-				<RequestLogsTableComponent logs={logs} />
+				<RequestLogsTableComponent logs={logs} onReplay={handleReplay} />
 			</div>
 		</div>
 	);

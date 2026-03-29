@@ -66,4 +66,22 @@ export class AlertThrottleService {
 		}
 		this.memory.set(k, Date.now());
 	}
+
+	/** Extends alert cooldown (e.g. user mute from chat). */
+	async setCooldownMs(
+		endpointId: string,
+		channelId: string,
+		cooldownMs: number,
+	): Promise<void> {
+		const k = this.key(endpointId, channelId);
+		if (this.redis && !this.useMemoryOnly) {
+			try {
+				await this.redis.set(k, "1", "PX", Math.max(1000, cooldownMs));
+				return;
+			} catch {
+				this.useMemoryOnly = true;
+			}
+		}
+		this.memory.set(k, Date.now());
+	}
 }

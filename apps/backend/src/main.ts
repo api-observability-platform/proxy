@@ -7,6 +7,7 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
+import { WebSocketProxyService } from "./proxy/websocket-proxy.service";
 import { ConfigKeyEnum } from "./common/enums/config.enum";
 import { EnvironmentsEnum } from "./common/enums/environments.enum";
 import { CatchEverythingFilter } from "./common/filters/catch-everything.filter";
@@ -144,6 +145,9 @@ const logger: Logger = new Logger("Bootstrap");
 	);
 
 	await app.listen(appPort);
+
+	const webSocketProxy = app.get(WebSocketProxyService);
+	webSocketProxy.attach(app.getHttpServer());
 
 	logger.log(`Proxy Server application is running on: ${await app.getUrl()}`);
 

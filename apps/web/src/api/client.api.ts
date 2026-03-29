@@ -5,7 +5,10 @@ import type {
 	EndpointDto,
 	EndpointListResponseDto,
 	ErrorResponseBody,
+	RateLimitConfig,
+	TransformRule,
 	UserDto,
+	EndpointProtocol,
 } from "@proxy-server/shared";
 import type { RequestLogDto } from "@/types/request-log.dto";
 
@@ -191,7 +194,15 @@ export const endpointsApi = {
 		const qs = search.toString();
 		return api<EndpointListResponseDto>(`/endpoints${qs ? `?${qs}` : ""}`);
 	},
-	create: (data: { name: string; targetUrl: string; isActive?: boolean }) =>
+	create: (data: {
+		name: string;
+		targetUrl: string;
+		protocol?: EndpointProtocol;
+		rateLimitConfig?: RateLimitConfig;
+		transformRules?: TransformRule[];
+		tcpProxyPort?: number;
+		isActive?: boolean;
+	}) =>
 		api<EndpointDto>("/endpoints", {
 			method: "POST",
 			body: JSON.stringify(data),
@@ -199,7 +210,15 @@ export const endpointsApi = {
 	get: (id: string) => api<EndpointDto>(`/endpoints/${id}`),
 	update: (
 		id: string,
-		data: { name?: string; targetUrl?: string; isActive?: boolean },
+		data: {
+			name?: string;
+			targetUrl?: string;
+			protocol?: EndpointProtocol;
+			rateLimitConfig?: RateLimitConfig | null;
+			transformRules?: TransformRule[] | null;
+			tcpProxyPort?: number | null;
+			isActive?: boolean;
+		},
 	) =>
 		api<EndpointDto>(`/endpoints/${id}`, {
 			method: "PATCH",
@@ -230,6 +249,60 @@ export const logsApi = {
 		);
 	},
 	get: (id: string) => api<RequestLogDto>(`/logs/${id}`),
+	replay: (id: string) =>
+		api<{
+			newLogId: string;
+			responseStatus: number | null;
+			responseBody: string | null;
+			durationMs: number;
+		}>(`/logs/${id}/replay`, { method: "POST" }),
+};
+
+type NotificationChannelDto = {
+	id: string;
+	userId: string;
+	type: string;
+	config: unknown;
+	isActive: boolean;
+	createdAt: string;
+};
+
+export const notificationsApi = {
+	channels: (params?: { limit?: number; offset?: number }) => {
+		const search = new URLSearchParams();
+		if (params?.limit != null) search.set("limit", String(params.limit));
+		if (params?.offset != null) search.set("offset", String(params.offset));
+		const qs = search.toString();
+		return api<{
+			items: NotificationChannelDto[];
+			total: number;
+			limit: number;
+			offset: number;
+		}>(`/notifications/channels${qs ? `?${qs}` : ""}`);
+	},
+	createReportSchedule: (data: {
+		channelId: string;
+		frequency: "DAILY" | "WEEKLY";
+	}) =>
+		api<{ id: string; frequency: string; channelId: string }>(
+			"/notifications/report-schedules",
+			{ method: "POST", body: JSON.stringify(data) },
+		),
+	listReportSchedules: () =>
+		api<
+			Array<{
+				id: string;
+				userId: string;
+				channelId: string;
+				frequency: string;
+				isActive: boolean;
+				createdAt: string;
+			}>
+		>("/notifications/report-schedules"),
+	deleteReportSchedule: (id: string) =>
+		api<{ success: boolean }>(`/notifications/report-schedules/${id}`, {
+			method: "DELETE",
+		}),
 };
 
 export const analyticsApi = {

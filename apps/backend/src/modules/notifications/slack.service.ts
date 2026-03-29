@@ -19,4 +19,20 @@ export class SlackService {
 			throw new Error(`Slack webhook error: ${res.status}`);
 		}
 	}
+
+	/** Incoming webhook with Block Kit payload (includes fallback `text`). */
+	async sendBlockKit(
+		config: { webhookUrl: string },
+		payload: Record<string, unknown>,
+	): Promise<void> {
+		const res = await fetch(config.webhookUrl, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload),
+			signal: AbortSignal.timeout(outboundWebhookConstants.FETCH_TIMEOUT_MS),
+		});
+		if (!res.ok) {
+			throw new Error(`Slack webhook error: ${res.status}`);
+		}
+	}
 }

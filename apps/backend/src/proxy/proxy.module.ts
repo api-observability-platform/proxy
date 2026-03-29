@@ -1,15 +1,39 @@
 import { Module } from "@nestjs/common";
 import { EndpointsModule } from "../modules/endpoints/endpoints.module";
 import { NotificationsModule } from "../modules/notifications/notifications.module";
+import { GraphqlProxyHandler } from "./handlers/graphql-proxy.handler.js";
+import { HttpProxyHandler } from "./handlers/http-proxy.handler.js";
+import { SseProxyHandler } from "./handlers/sse-proxy.handler.js";
+import { GrpcForwardProxyService } from "./grpc-forward-proxy.service.js";
 import { ProxyMiddleware } from "./proxy.middleware";
+import { ProxyRateLimitService } from "./proxy-rate-limit.service.js";
 import { ProxyService } from "./proxy.service";
+import { TcpProxyService } from "./tcp-proxy.service.js";
+import { TransformPipelineService } from "./transform-pipeline.service.js";
+import { WebSocketProxyService } from "./websocket-proxy.service.js";
 
 /**
  * Reverse proxy wiring (service invoked by global middleware).
  */
 @Module({
 	imports: [EndpointsModule, NotificationsModule],
-	providers: [ProxyService, ProxyMiddleware],
-	exports: [ProxyService],
+	providers: [
+		ProxyService,
+		TransformPipelineService,
+		ProxyRateLimitService,
+		HttpProxyHandler,
+		GraphqlProxyHandler,
+		SseProxyHandler,
+		WebSocketProxyService,
+		TcpProxyService,
+		GrpcForwardProxyService,
+		ProxyMiddleware,
+	],
+	exports: [
+		ProxyService,
+		TransformPipelineService,
+		ProxyRateLimitService,
+		WebSocketProxyService,
+	],
 })
 export class ProxyModule {}

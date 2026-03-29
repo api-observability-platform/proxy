@@ -6,4 +6,7 @@ export type RequestLogDto = {
 	path: string;
 	responseStatus: number | null;
 	durationMs: number | null;
+	protocol?: string;
+	metadata?: unknown;
+	queryParams?: string | null;
 };

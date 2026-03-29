@@ -1,12 +1,16 @@
 import {
+	BadRequestException,
 	ForbiddenException,
 	Inject,
 	Injectable,
 	NotFoundException,
 } from "@nestjs/common";
+import { EndpointProtocol, Prisma } from "@prisma/generated/client";
 import { paginationConstants } from "../../common/constants/pagination.constants";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import type { Endpoint, RequestLog } from "@prisma/generated/client";
+import { proxyRequestConstants } from "../../proxy/proxy-request.constants";
+import { type ProxyLogPayload, ProxyService } from "../../proxy/proxy.service";
 import type { LogsListQueryDto } from "./dto/logs-list-query.dto";
 
 /**
@@ -14,7 +18,10 @@ import type { LogsListQueryDto } from "./dto/logs-list-query.dto";
  */
 @Injectable()
 export class LogsService {
-	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+	constructor(
+		@Inject(PrismaService) private readonly prisma: PrismaService,
+		@Inject(ProxyService) private readonly proxyService: ProxyService,
+	) {}
 
 	/** Lists logs for an endpoint the user owns with optional filters. */
 	async findByEndpoint(
@@ -71,4 +78,128 @@ export class LogsService {
 		}
 		return log;
 	}
+
+	/** Replays a stored HTTP-like request against the endpoint upstream and creates a new log. */
+	async replay(
+		logId: string,
+		userId: string,
+	): Promise<{
+		newLogId: string;
+		responseStatus: number | null;
+		responseBody: string | null;
+		durationMs: number;
+	}> {
+		const log = await this.findOne(logId, userId);
+		const { endpoint } = log;
+		const replayable = new Set<EndpointProtocol>([
+			EndpointProtocol.HTTP,
+			EndpointProtocol.GRAPHQL,
+			EndpointProtocol.SSE,
+		]);
+		if (!replayable.has(endpoint.protocol)) {
+			throw new BadRequestException(
+				"Replay is only supported for HTTP, GraphQL, and SSE endpoints",
+			);
+		}
+		const targetUrl = this.proxyService.buildTargetUrl(
+			endpoint,
+			log.path,
+			log.queryParams ?? "",
+		);
+		const targetHost = new URL(endpoint.targetUrl).host;
+		const storedHeaders = jsonHeadersToRecord(log.requestHeaders);
+		const headers = this.proxyService.cleanHeadersForUpstream(
+			storedHeaders,
+			targetHost,
+		);
+		const method = log.method;
+		const bodyAllowed = !["GET", "HEAD"].includes(method.toUpperCase());
+		const body = bodyAllowed && log.requestBody ? log.requestBody : undefined;
+		const started = Date.now();
+		try {
+			const upstreamRes = await fetch(targetUrl, {
+				method,
+				headers: headers as HeadersInit,
+				...(body !== undefined ? { body } : {}),
+				signal: AbortSignal.timeout(proxyRequestConstants.UPSTREAM_TIMEOUT_MS),
+			});
+			const durationMs = Date.now() - started;
+			const buf = Buffer.from(await upstreamRes.arrayBuffer());
+			const responseHeaders: Record<string, string> = {};
+			upstreamRes.headers.forEach((v, k) => {
+				responseHeaders[k] = v;
+			});
+			const entry: ProxyLogPayload = {
+				endpointId: endpoint.id,
+				method: `${method} (replay)`,
+				path: log.path,
+				queryParams: log.queryParams,
+				requestHeaders: this.proxyService.maskSensitiveHeaders(headers),
+				requestBody: log.requestBody,
+				responseStatus: upstreamRes.status,
+				responseHeaders:
+					this.proxyService.maskSensitiveHeaders(responseHeaders),
+				responseBody: this.proxyService.truncateForLog(
+					buf,
+					proxyRequestConstants.LOG_BODY_TRUNCATION_BYTES,
+				),
+				durationMs,
+				clientIp: null,
+				protocol: endpoint.protocol,
+				metadata: {
+					replayedFromLogId: logId,
+				},
+			};
+			const newLogId = await this.proxyService.persistRequestLog(entry);
+			return {
+				newLogId,
+				responseStatus: upstreamRes.status,
+				responseBody: entry.responseBody,
+				durationMs,
+			};
+		} catch {
+			const durationMs = Date.now() - started;
+			const entry: ProxyLogPayload = {
+				endpointId: endpoint.id,
+				method: `${method} (replay)`,
+				path: log.path,
+				queryParams: log.queryParams,
+				requestHeaders: this.proxyService.maskSensitiveHeaders(headers),
+				requestBody: log.requestBody,
+				responseStatus: proxyRequestConstants.HTTP_BAD_GATEWAY,
+				responseHeaders: null,
+				responseBody: null,
+				durationMs,
+				clientIp: null,
+				protocol: endpoint.protocol,
+				metadata: {
+					replayedFromLogId: logId,
+					replayError: true,
+				},
+			};
+			const newLogId = await this.proxyService.persistRequestLog(entry);
+			return {
+				newLogId,
+				responseStatus: proxyRequestConstants.HTTP_BAD_GATEWAY,
+				responseBody: null,
+				durationMs,
+			};
+		}
+	}
+}
+
+function jsonHeadersToRecord(
+	value: Prisma.JsonValue | null,
+): Record<string, string | string[] | undefined> {
+	if (value === null || typeof value !== "object" || Array.isArray(value)) {
+		return {};
+	}
+	const out: Record<string, string | string[] | undefined> = {};
+	for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+		if (typeof v === "string") out[k] = v;
+		else if (Array.isArray(v) && v.every((x) => typeof x === "string")) {
+			out[k] = v as string[];
+		}
+	}
+	return out;
 }

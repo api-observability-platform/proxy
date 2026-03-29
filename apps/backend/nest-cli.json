@@ -5,7 +5,14 @@
 	"compilerOptions": {
 		"builder": "tsc",
 		"deleteOutDir": true,
-		"tsConfigPath": "tsconfig.json"
+		"tsConfigPath": "tsconfig.json",
+		"assets": [
+			{
+				"include": "proxy/proto/*.proto",
+				"outDir": "dist",
+				"watchAssets": true
+			}
+		]
 	},
 	"plugins": [
 		{

@@ -1,3 +1,4 @@
+import { ENDPOINT_PROTOCOLS } from "@proxy-server/shared";
 import { type FormEvent, useState } from "react";
 import { EndpointsTableComponent } from "@/components/endpoints-table.component";
 import { ButtonComponent } from "@/components/ui/button.component";
@@ -9,6 +10,12 @@ import { useCreateEndpoint, useEndpointsList } from "@/hooks/endpoints.hooks";
 export const EndpointsPage = () => {
 	const [name, setName] = useState("");
 	const [targetUrl, setTargetUrl] = useState("");
+	const [protocol, setProtocol] =
+		useState<(typeof ENDPOINT_PROTOCOLS)[number]>("HTTP");
+	const [rateMax, setRateMax] = useState("");
+	const [rateWindowSec, setRateWindowSec] = useState("");
+	const [transformJson, setTransformJson] = useState("");
+	const [tcpPort, setTcpPort] = useState("");
 	const [error, setError] = useState("");
 	const {
 		data: listData,
@@ -31,10 +38,64 @@ export const EndpointsPage = () => {
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		setError("");
+		let transformRules: unknown;
+		if (transformJson.trim()) {
+			try {
+				transformRules = JSON.parse(transformJson) as unknown;
+				if (!Array.isArray(transformRules)) {
+					setError("Transform rules must be a JSON array");
+					return;
+				}
+			} catch {
+				setError("Invalid JSON for transform rules");
+				return;
+			}
+		}
+		const rateLimitConfig =
+			rateMax.trim() && rateWindowSec.trim()
+				? {
+						maxRequests: Number.parseInt(rateMax, 10),
+						windowSeconds: Number.parseInt(rateWindowSec, 10),
+					}
+				: undefined;
+		if (
+			rateLimitConfig &&
+			(!Number.isFinite(rateLimitConfig.maxRequests) ||
+				!Number.isFinite(rateLimitConfig.windowSeconds) ||
+				rateLimitConfig.maxRequests < 1 ||
+				rateLimitConfig.windowSeconds < 1)
+		) {
+			setError("Invalid rate limit numbers");
+			return;
+		}
+		const tcpProxyPortParsed = tcpPort.trim()
+			? Number.parseInt(tcpPort, 10)
+			: undefined;
+		if (
+			tcpProxyPortParsed !== undefined &&
+			!Number.isFinite(tcpProxyPortParsed)
+		) {
+			setError("Invalid TCP port");
+			return;
+		}
 		try {
-			await createMutation.mutateAsync({ name, targetUrl });
+			await createMutation.mutateAsync({
+				name,
+				targetUrl,
+				protocol,
+				...(rateLimitConfig ? { rateLimitConfig } : {}),
+				...(transformRules ? { transformRules: transformRules as never } : {}),
+				...(protocol === "TCP" && tcpProxyPortParsed
+					? { tcpProxyPort: tcpProxyPortParsed }
+					: {}),
+			});
 			setName("");
 			setTargetUrl("");
+			setProtocol("HTTP");
+			setRateMax("");
+			setRateWindowSec("");
+			setTransformJson("");
+			setTcpPort("");
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to create");
 		}
@@ -78,6 +139,70 @@ export const EndpointsPage = () => {
 						aria-invalid={error ? true : undefined}
 						aria-describedby={error ? createFormErrorId : undefined}
 					/>
+					<div className="space-y-2">
+						<label htmlFor="protocol" className="block text-sm text-white/80">
+							Protocol
+						</label>
+						<select
+							id="protocol"
+							name="protocol"
+							value={protocol}
+							onChange={(e) =>
+								setProtocol(
+									e.target.value as (typeof ENDPOINT_PROTOCOLS)[number],
+								)
+							}
+							className="w-full border border-white/30 bg-black px-3 py-2 text-white"
+						>
+							{ENDPOINT_PROTOCOLS.map((p) => (
+								<option key={p} value={p}>
+									{p}
+								</option>
+							))}
+						</select>
+					</div>
+					{protocol === "TCP" ? (
+						<InputComponent
+							label="TCP listen port"
+							type="number"
+							name="tcpPort"
+							value={tcpPort}
+							onChange={(e) => setTcpPort(e.target.value)}
+							placeholder="19000"
+						/>
+					) : null}
+					<div className="grid gap-4 md:grid-cols-2">
+						<InputComponent
+							label="Rate limit max requests (optional)"
+							type="number"
+							name="rateMax"
+							value={rateMax}
+							onChange={(e) => setRateMax(e.target.value)}
+							placeholder="100"
+						/>
+						<InputComponent
+							label="Rate limit window seconds (optional)"
+							type="number"
+							name="rateWindow"
+							value={rateWindowSec}
+							onChange={(e) => setRateWindowSec(e.target.value)}
+							placeholder="60"
+						/>
+					</div>
+					<div className="space-y-2">
+						<label htmlFor="transformRules" className="text-sm text-white/80">
+							Transform rules JSON (optional array)
+						</label>
+						<textarea
+							id="transformRules"
+							name="transformRules"
+							value={transformJson}
+							onChange={(e) => setTransformJson(e.target.value)}
+							rows={4}
+							placeholder='[{"type":"ADD_HEADER","phase":"request","name":"X-Test","value":"1"}]'
+							className="w-full border border-white/30 bg-black px-3 py-2 font-mono text-sm text-white"
+						/>
+					</div>
 					<ButtonComponent type="submit" disabled={createMutation.isPending}>
 						{createMutation.isPending ? "Creating..." : "Create"}
 					</ButtonComponent>

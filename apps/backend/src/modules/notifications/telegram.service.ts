@@ -9,16 +9,21 @@ export class TelegramService {
 	async send(
 		config: { botToken: string; chatId: string },
 		message: string,
+		replyMarkup?: Record<string, unknown>,
 	): Promise<void> {
 		const url = `https://api.telegram.org/bot${config.botToken}/sendMessage`;
+		const body: Record<string, unknown> = {
+			chat_id: config.chatId,
+			text: message,
+			parse_mode: "HTML",
+		};
+		if (replyMarkup) {
+			body.reply_markup = replyMarkup;
+		}
 		const res = await fetch(url, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				chat_id: config.chatId,
-				text: message,
-				parse_mode: "HTML",
-			}),
+			body: JSON.stringify(body),
 			signal: AbortSignal.timeout(outboundWebhookConstants.FETCH_TIMEOUT_MS),
 		});
 		if (!res.ok) {

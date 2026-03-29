@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { logsApi } from "@/api/client.api";
 import { useCanQueryProtectedApi } from "@/contexts/auth.context";
 
@@ -23,5 +23,19 @@ export function useLogsByEndpoint(
 		staleTime: 5_000,
 		refetchOnWindowFocus: true,
 		refetchInterval: endpointId ? LOGS_POLL_MS : false,
+	});
+}
+
+export function useReplayLog(endpointId: string | undefined) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (logId: string) => logsApi.replay(logId),
+		onSuccess: () => {
+			if (endpointId) {
+				void queryClient.invalidateQueries({
+					queryKey: logsQueryKeys.byEndpoint(endpointId),
+				});
+			}
+		},
 	});
 }

@@ -1,15 +1,8 @@
+import type { EndpointDto } from "@proxy-server/shared";
 import { Link } from "react-router-dom";
 
-type EndpointRow = {
-	id: string;
-	name: string;
-	slug: string;
-	targetUrl: string;
-	isActive: boolean;
-};
-
 type Props = {
-	endpoints: EndpointRow[];
+	endpoints: EndpointDto[];
 	proxyUrlColumn?: "path" | "slug-only";
 };
 
@@ -24,6 +17,9 @@ export function EndpointsTableComponent({
 					<tr className="border-b border-white/20">
 						<th className="px-4 py-3 text-left text-sm font-medium text-white/60">
 							Name
+						</th>
+						<th className="px-4 py-3 text-left text-sm font-medium text-white/60">
+							Protocol
 						</th>
 						<th className="px-4 py-3 text-left text-sm font-medium text-white/60">
 							{proxyUrlColumn === "path" ? "Proxy URL" : "Slug"}
@@ -43,6 +39,7 @@ export function EndpointsTableComponent({
 					{endpoints.map((ep) => (
 						<tr key={ep.id} className="hover:bg-white/5">
 							<td className="px-4 py-3">{ep.name}</td>
+							<td className="px-4 py-3 text-sm text-white/70">{ep.protocol}</td>
 							<td className="px-4 py-3 font-mono text-sm text-white/80">
 								{proxyUrlColumn === "path" ? `/r/${ep.slug}` : ep.slug}
 							</td>

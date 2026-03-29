@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
+import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigKeyEnum } from "./common/enums/config.enum";
 import { CoreModule } from "./core/core.module";
@@ -15,6 +16,7 @@ import { CorrelationIdMiddleware } from "./common/middleware/correlation-id.midd
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
 import { EndpointsModule } from "./modules/endpoints/endpoints.module";
 import { HealthModule } from "./modules/health/health.module";
+import { IntegrationsModule } from "./modules/integrations/integrations.module";
 import { LogsModule } from "./modules/logs/logs.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { ProxyMiddleware } from "./proxy/proxy.middleware";
@@ -24,6 +26,7 @@ import { ProxyModule } from "./proxy/proxy.module";
 @Module({
 	imports: [
 		CoreModule,
+		ScheduleModule.forRoot(),
 		ThrottlerModule.forRootAsync({
 			inject: [ConfigService],
 			useFactory: (config: ConfigService) => {
@@ -41,6 +44,7 @@ import { ProxyModule } from "./proxy/proxy.module";
 		LogsModule,
 		AnalyticsModule,
 		NotificationsModule,
+		IntegrationsModule,
 		ProxyModule,
 	],
 	providers: [

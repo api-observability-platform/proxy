@@ -1,5 +1,9 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { type Endpoint, Prisma } from "@prisma/generated/client";
+import {
+	type Endpoint,
+	type EndpointProtocol,
+	Prisma,
+} from "@prisma/generated/client";
 import { PrismaService } from "../core/prisma/prisma.service";
 import { EndpointsService } from "../modules/endpoints/endpoints.service";
 import { NotificationsService } from "../modules/notifications/notifications.service";
@@ -23,42 +27,20 @@ export class ProxyService {
 		return this.endpointsService.findBySlug(slug);
 	}
 
-	logRequest(data: {
-		endpointId: string;
-		method: string;
-		path: string;
-		queryParams: string | null;
-		requestHeaders: Record<string, string> | null;
-		requestBody: string | null;
-		responseStatus: number | null;
-		responseHeaders: Record<string, string> | null;
-		responseBody: string | null;
-		durationMs: number;
-		clientIp: string | null;
-	}): void {
-		const payload = {
-			endpointId: data.endpointId,
-			method: data.method,
-			path: data.path,
-			queryParams: data.queryParams,
-			requestHeaders: data.requestHeaders ?? Prisma.JsonNull,
-			requestBody: data.requestBody,
-			responseStatus: data.responseStatus,
-			responseHeaders: data.responseHeaders ?? Prisma.JsonNull,
-			responseBody: data.responseBody,
-			durationMs: data.durationMs,
-			clientIp: data.clientIp,
-		};
-		this.prisma.requestLog
-			.create({ data: payload })
-			.catch((err: unknown) =>
-				this.logger.error(
-					`Failed to log request: ${err instanceof Error ? err.message : err}`,
-					err instanceof Error ? err.stack : undefined,
-				),
-			);
+	logRequest(data: ProxyLogPayload): void {
+		void this.persistRequestLog(data).catch((err: unknown) =>
+			this.logger.error(
+				`Failed to log request: ${err instanceof Error ? err.message : err}`,
+				err instanceof Error ? err.stack : undefined,
+			),
+		);
+	}
 
-		this.notifications
+	/** Persists a log row and returns its id (used for replay flows). */
+	async persistRequestLog(data: ProxyLogPayload): Promise<string> {
+		const payload = this.buildLogCreateData(data);
+		const row = await this.prisma.requestLog.create({ data: payload });
+		await this.notifications
 			.evaluateAndNotify(data.endpointId, {
 				responseStatus: data.responseStatus,
 				durationMs: data.durationMs,
@@ -71,6 +53,29 @@ export class ProxyService {
 					err instanceof Error ? err.stack : undefined,
 				),
 			);
+		return row.id;
+	}
+
+	private buildLogCreateData(data: ProxyLogPayload) {
+		const proto = data.protocol ?? "HTTP";
+		return {
+			endpointId: data.endpointId,
+			method: data.method,
+			path: data.path,
+			queryParams: data.queryParams,
+			requestHeaders: data.requestHeaders ?? Prisma.JsonNull,
+			requestBody: data.requestBody,
+			responseStatus: data.responseStatus,
+			responseHeaders: data.responseHeaders ?? Prisma.JsonNull,
+			responseBody: data.responseBody,
+			durationMs: data.durationMs,
+			clientIp: data.clientIp,
+			protocol: String(proto),
+			metadata:
+				data.metadata === undefined || data.metadata === null
+					? Prisma.JsonNull
+					: data.metadata,
+		};
 	}
 
 	truncateForLog(value: string | Buffer | null, limit: number): string | null {
@@ -141,3 +146,19 @@ export class ProxyService {
 		return result;
 	}
 }
+
+export type ProxyLogPayload = {
+	endpointId: string;
+	method: string;
+	path: string;
+	queryParams: string | null;
+	requestHeaders: Record<string, string> | null;
+	requestBody: string | null;
+	responseStatus: number | null;
+	responseHeaders: Record<string, string> | null;
+	responseBody: string | null;
+	durationMs: number;
+	clientIp: string | null;
+	protocol?: EndpointProtocol;
+	metadata?: Prisma.InputJsonValue | null;
+};

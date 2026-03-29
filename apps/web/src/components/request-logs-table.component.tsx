@@ -1,6 +1,12 @@
 import type { RequestLogDto } from "@/types/request-log.dto";
 
-export function RequestLogsTableComponent({ logs }: { logs: RequestLogDto[] }) {
+export function RequestLogsTableComponent({
+	logs,
+	onReplay,
+}: {
+	logs: RequestLogDto[];
+	onReplay?: (logId: string) => void;
+}) {
 	if (logs.length === 0) {
 		return (
 			<p className="text-white/60">
@@ -28,6 +34,11 @@ export function RequestLogsTableComponent({ logs }: { logs: RequestLogDto[] }) {
 						<th className="px-4 py-2 text-left text-sm font-medium text-white/60">
 							Duration
 						</th>
+						{onReplay ? (
+							<th className="px-4 py-2 text-left text-sm font-medium text-white/60">
+								Replay
+							</th>
+						) : null}
 					</tr>
 				</thead>
 				<tbody>
@@ -41,6 +52,11 @@ export function RequestLogsTableComponent({ logs }: { logs: RequestLogDto[] }) {
 							</td>
 							<td className="px-4 py-2 font-mono text-sm text-white/80">
 								{log.method}
+								{log.protocol && log.protocol !== "HTTP" ? (
+									<span className="ml-1 text-xs text-white/40">
+										({log.protocol})
+									</span>
+								) : null}
 							</td>
 							<td className="px-4 py-2 font-mono text-sm text-white/60 truncate max-w-[200px]">
 								{log.path}
@@ -51,6 +67,23 @@ export function RequestLogsTableComponent({ logs }: { logs: RequestLogDto[] }) {
 							<td className="px-4 py-2 text-sm text-white/60">
 								{log.durationMs != null ? `${log.durationMs}ms` : "—"}
 							</td>
+							{onReplay ? (
+								<td className="px-4 py-2">
+									<button
+										type="button"
+										onClick={() => onReplay(log.id)}
+										disabled={
+											log.method.startsWith("WEBSOCKET") ||
+											log.method === "TCP" ||
+											log.method === "GRPC" ||
+											log.method.includes("replay")
+										}
+										className="border border-white/30 px-2 py-1 text-xs hover:bg-white hover:text-black disabled:opacity-40"
+									>
+										Replay
+									</button>
+								</td>
+							) : null}
 						</tr>
 					))}
 				</tbody>

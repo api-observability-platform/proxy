@@ -28,7 +28,9 @@ import { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
 import { AlertRulesService } from "./alert-rules.service";
 import { CreateAlertRuleDto } from "./dto/create-alert-rule.dto";
 import { CreateChannelDto } from "./dto/create-channel.dto";
+import { CreateReportScheduleDto } from "./dto/create-report-schedule.dto";
 import { NotificationChannelsService } from "./notification-channels.service";
+import { ReportSchedulesService } from "./report-schedules.service";
 import { ErrorResponseSchema } from "src/common/swagger/schemas/error-response.schema";
 
 /**
@@ -42,6 +44,8 @@ export class NotificationsController {
 		@Inject(NotificationChannelsService)
 		private readonly channels: NotificationChannelsService,
 		@Inject(AlertRulesService) private readonly alertRules: AlertRulesService,
+		@Inject(ReportSchedulesService)
+		private readonly reportSchedules: ReportSchedulesService,
 	) {}
 
 	@Post("channels")
@@ -230,5 +234,32 @@ export class NotificationsController {
 		@CurrentUser("id") userId: string,
 	): ReturnType<AlertRulesService["remove"]> {
 		return this.alertRules.remove(id, userId);
+	}
+
+	@Post("report-schedules")
+	@HttpCode(HttpStatus.CREATED)
+	@ApiOperation({ summary: "Create digest schedule" })
+	createReportSchedule(
+		@CurrentUser("id") userId: string,
+		@Body() dto: CreateReportScheduleDto,
+	): ReturnType<ReportSchedulesService["create"]> {
+		return this.reportSchedules.create(userId, dto);
+	}
+
+	@Get("report-schedules")
+	@ApiOperation({ summary: "List digest schedules" })
+	listReportSchedules(
+		@CurrentUser("id") userId: string,
+	): ReturnType<ReportSchedulesService["list"]> {
+		return this.reportSchedules.list(userId);
+	}
+
+	@Delete("report-schedules/:id")
+	@ApiOperation({ summary: "Delete digest schedule" })
+	deleteReportSchedule(
+		@Param("id") id: string,
+		@CurrentUser("id") userId: string,
+	): ReturnType<ReportSchedulesService["remove"]> {
+		return this.reportSchedules.remove(id, userId);
 	}
 }
