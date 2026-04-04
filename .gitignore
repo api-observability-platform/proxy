@@ -14,3 +14,4 @@ apps/backend/compodoc
 **/.DS_Store
 
 .cursor
+docs
