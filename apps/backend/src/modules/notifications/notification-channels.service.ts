@@ -5,9 +5,6 @@ import type { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import type { CreateChannelDto } from "./dto/create-channel.dto";
 
-/**
- * Persistence for user-owned notification channels (Telegram, Slack, etc.).
- */
 @Injectable()
 export class NotificationChannelsService {
 	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}

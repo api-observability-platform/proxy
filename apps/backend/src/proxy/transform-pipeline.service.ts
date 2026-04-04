@@ -15,9 +15,6 @@ type ResponsePhaseInput = {
 	body: Buffer;
 };
 
-/**
- * Applies ordered per-endpoint transform rules to request and response data.
- */
 @Injectable()
 export class TransformPipelineService {
 	parseRules(endpoint: Endpoint): TransformRule[] {

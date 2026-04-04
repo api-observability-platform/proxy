@@ -14,9 +14,6 @@ import { ProxyService } from "./proxy.service.js";
 
 type HeadersRecord = Record<string, string | string[] | undefined>;
 
-/**
- * Resolves slug traffic, applies rate limits, and delegates to protocol handlers.
- */
 @Injectable()
 export class ProxyMiddleware implements NestMiddleware {
 	private readonly handlers: ProtocolHandler[];

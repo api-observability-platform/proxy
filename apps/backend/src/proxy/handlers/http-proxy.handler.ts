@@ -8,9 +8,6 @@ import type { ProxyContext } from "../proxy-context.type.js";
 import { mergeLogMetadata } from "../proxy-log-metadata.util.js";
 import { TransformPipelineService } from "../transform-pipeline.service.js";
 
-/**
- * Buffered HTTP reverse proxy (request/response bodies fully read).
- */
 @Injectable()
 export class HttpProxyHandler implements ProtocolHandler {
 	private readonly logger = new Logger(HttpProxyHandler.name);

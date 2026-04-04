@@ -12,9 +12,6 @@ import { hashOpaqueToken } from "./utils/token-hash.util";
 
 const REFRESH_TOKEN_NANOID_LENGTH = 64;
 
-/**
- * Issues JWT access tokens and manages opaque refresh token persistence.
- */
 @Injectable()
 export class TokenService {
 	constructor(

@@ -11,9 +11,6 @@ import { TcpProxyService } from "./tcp-proxy.service.js";
 import { TransformPipelineService } from "./transform-pipeline.service.js";
 import { WebSocketProxyService } from "./websocket-proxy.service.js";
 
-/**
- * Reverse proxy wiring (service invoked by global middleware).
- */
 @Module({
 	imports: [EndpointsModule, NotificationsModule],
 	providers: [

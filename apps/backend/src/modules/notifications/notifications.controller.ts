@@ -33,9 +33,6 @@ import { NotificationChannelsService } from "./notification-channels.service";
 import { ReportSchedulesService } from "./report-schedules.service";
 import { ErrorResponseSchema } from "src/common/swagger/schemas/error-response.schema";
 
-/**
- * HTTP API for notification channels and endpoint alert rules.
- */
 @ApiTags("Notifications")
 @ApiBearerAuth("Bearer")
 @Controller("notifications")
@@ -67,7 +64,6 @@ export class NotificationsController {
 			$ref: getSchemaPath(ErrorResponseSchema),
 		},
 	})
-	/** Validates the body and creates a Slack or Telegram channel. */
 	createChannel(
 		@CurrentUser("id") userId: string,
 		@Body() dto: CreateChannelDto,
@@ -159,7 +155,6 @@ export class NotificationsController {
 			$ref: getSchemaPath(ErrorResponseSchema),
 		},
 	})
-	/** Validates the body and links an endpoint to a notification channel for alerts. */
 	createAlertRule(
 		@CurrentUser("id") userId: string,
 		@Body() dto: CreateAlertRuleDto,

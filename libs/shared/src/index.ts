@@ -1,6 +1,3 @@
-/**
- * Shared types for the monorepo. Import from `@proxy-server/shared`.
- */
 export type {
 	AnalyticsBreakdownDto,
 	AnalyticsSummaryDto,

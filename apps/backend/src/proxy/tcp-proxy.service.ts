@@ -14,9 +14,6 @@ import {
 import { PrismaService } from "../core/prisma/prisma.service.js";
 import { ProxyService } from "./proxy.service.js";
 
-/**
- * Listens on each TCP endpoint's `tcpProxyPort` and pipes bytes to `targetUrl`.
- */
 @Injectable()
 export class TcpProxyService implements OnModuleInit, OnModuleDestroy {
 	private readonly logger = new Logger(TcpProxyService.name);

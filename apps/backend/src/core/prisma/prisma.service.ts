@@ -9,9 +9,6 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/generated/client";
 import { ConfigKeyEnum } from "src/common/enums/config.enum";
 
-/**
- * Application Prisma client with PostgreSQL driver adapter from configuration.
- */
 @Injectable()
 export class PrismaService
 	extends PrismaClient

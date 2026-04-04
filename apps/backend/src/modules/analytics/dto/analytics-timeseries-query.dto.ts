@@ -3,9 +3,6 @@ import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, Max, Min } from "class-validator";
 import { analyticsConstants } from "../analytics.constants";
 
-/**
- * Query parameters for `GET /analytics/:endpointId/timeseries`.
- */
 export class AnalyticsTimeseriesQueryDto {
 	@ApiPropertyOptional({
 		enum: ["hour", "day"],

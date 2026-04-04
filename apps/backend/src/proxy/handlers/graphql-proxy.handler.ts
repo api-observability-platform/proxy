@@ -6,9 +6,6 @@ import type { ProxyContext } from "../proxy-context.type.js";
 import { HttpProxyHandler } from "./http-proxy.handler.js";
 import type { ProtocolHandler } from "./protocol-handler.interface.js";
 
-/**
- * GraphQL-over-HTTP proxy: adds operation metadata to request logs.
- */
 @Injectable()
 export class GraphqlProxyHandler implements ProtocolHandler {
 	readonly protocol = EndpointProtocol.GRAPHQL;

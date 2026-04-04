@@ -26,9 +26,6 @@ type ForwardReplyMsg = {
 	error_message: string;
 };
 
-/**
- * Unary gRPC gateway using an envelope proto (`ForwardRequest.slug` selects the endpoint).
- */
 @Injectable()
 export class GrpcForwardProxyService implements OnModuleInit, OnModuleDestroy {
 	private readonly logger = new Logger(GrpcForwardProxyService.name);

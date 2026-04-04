@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsString, MinLength, ValidateIf } from "class-validator";
 
-/** Validated transform rule for proxy traffic. */
 export class TransformRuleDto {
 	@ApiProperty({
 		enum: ["ADD_HEADER", "REMOVE_HEADER", "REWRITE_PATH", "SET_BODY"],

@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { outboundWebhookConstants } from "./outbound-webhook.constants";
 
-/**
- * Sends messages to Slack incoming webhooks.
- */
 @Injectable()
 export class SlackService {
 	async send(config: { webhookUrl: string }, message: string): Promise<void> {
@@ -20,7 +17,6 @@ export class SlackService {
 		}
 	}
 
-	/** Incoming webhook with Block Kit payload (includes fallback `text`). */
 	async sendBlockKit(
 		config: { webhookUrl: string },
 		payload: Record<string, unknown>,

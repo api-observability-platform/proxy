@@ -27,12 +27,10 @@ const SLUG_LENGTH = 10;
 const SLUG_MAX_ATTEMPTS = 5;
 const generateSlug = customAlphabet(slugAlphabet, SLUG_LENGTH);
 
-/** Domain logic and persistence for proxy endpoint records. */
 @Injectable()
 export class EndpointsService {
 	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-	/** Creates an endpoint row with a unique slug. */
 	async create(userId: string, dto: CreateEndpointDto): Promise<EndpointDto> {
 		let slug = generateSlug();
 		let attempts = 0;
@@ -65,7 +63,6 @@ export class EndpointsService {
 		return mapEndpointToDto(created);
 	}
 
-	/** Paginates endpoints for a user ID. */
 	async findAll(
 		userId: string,
 		query: ListEndpointsQueryDto,
@@ -109,20 +106,17 @@ export class EndpointsService {
 		return endpoint;
 	}
 
-	/** Returns a single public endpoint DTO for an owned record. */
 	async findOne(id: string, user: CurrentUserPayload): Promise<EndpointDto> {
 		const endpoint = await this.getOwnedEndpointOrThrow(id, user);
 		return mapEndpointToDto(endpoint);
 	}
 
-	/** Resolves an active endpoint by public slug (proxy routing). */
 	async findBySlug(slug: string): Promise<Endpoint | null> {
 		return this.prisma.endpoint.findUnique({
 			where: { slug, isActive: true },
 		});
 	}
 
-	/** Updates mutable fields after an ownership check. */
 	async update(
 		id: string,
 		user: CurrentUserPayload,
@@ -158,7 +152,6 @@ export class EndpointsService {
 		return mapEndpointToDto(updated);
 	}
 
-	/** Deletes an endpoint after an ownership check. */
 	async remove(
 		id: string,
 		user: CurrentUserPayload,

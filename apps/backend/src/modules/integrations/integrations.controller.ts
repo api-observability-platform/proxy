@@ -27,9 +27,6 @@ type TelegramUpdate = {
 	};
 };
 
-/**
- * Public webhooks for Slack interactivity and Telegram (minimal handlers).
- */
 @ApiTags("Integrations")
 @Controller("integrations")
 export class IntegrationsController {

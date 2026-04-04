@@ -1,6 +1,5 @@
 import { proxyRequestConstants } from "./proxy-request.constants.js";
 
-/** Resolves slug and path for `/r/:slug` and subdomain routing. */
 export function extractSlugAndPathFromProxyRequest(
 	host: string,
 	pathWithoutQuery: string,

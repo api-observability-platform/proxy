@@ -8,9 +8,6 @@ import { PrismaService } from "../core/prisma/prisma.service";
 import { EndpointsService } from "../modules/endpoints/endpoints.service";
 import { NotificationsService } from "../modules/notifications/notifications.service";
 
-/**
- * Resolves proxy targets, forwards HTTP semantics, and persists request logs.
- */
 @Injectable()
 export class ProxyService {
 	private readonly logger = new Logger(ProxyService.name);
@@ -36,7 +33,6 @@ export class ProxyService {
 		);
 	}
 
-	/** Persists a log row and returns its id (used for replay flows). */
 	async persistRequestLog(data: ProxyLogPayload): Promise<string> {
 		const payload = this.buildLogCreateData(data);
 		const row = await this.prisma.requestLog.create({ data: payload });

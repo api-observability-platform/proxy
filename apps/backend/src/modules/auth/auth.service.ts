@@ -22,9 +22,6 @@ import { authVerificationConstants } from "./auth-verification.constants";
 const CODE_TTL_MS = 15 * 60 * 1000;
 const SALT_ROUNDS = 10;
 
-/**
- * Core authentication flows: registration, verification, sign-in, and profile.
- */
 @Injectable()
 export class AuthService {
 	private readonly logger = new Logger(AuthService.name);
@@ -46,7 +43,6 @@ export class AuthService {
 		);
 	}
 
-	/** Creates an unverified user and sends a verification code by email. */
 	async signUp(signUpDto: SignUpDto): Promise<{ message: string }> {
 		const emailLower = signUpDto.email.toLowerCase();
 		const existing = await this.prisma.user.findUnique({
@@ -78,7 +74,6 @@ export class AuthService {
 		};
 	}
 
-	/** Marks the user verified and issues access and refresh tokens. */
 	async verifyEmail(
 		email: string,
 		code: string,
@@ -115,7 +110,6 @@ export class AuthService {
 		return this.tokenService.issueTokensForUserId(user.id);
 	}
 
-	/** Sends a new verification code when the account exists and is still unverified. */
 	async resendVerification(email: string): Promise<{ message: string }> {
 		const emailLower = email.toLowerCase();
 		const user = await this.prisma.user.findUnique({
@@ -142,7 +136,6 @@ export class AuthService {
 		return { message: "If an account exists, a code was sent." };
 	}
 
-	/** Authenticates a verified user and issues tokens. */
 	async signIn(
 		signInDto: SignInDto,
 	): Promise<AuthResponseType & { refreshToken: string }> {
@@ -164,7 +157,6 @@ export class AuthService {
 		return this.tokenService.issueTokensForUserId(user.id);
 	}
 
-	/** Returns public user fields when the id exists. */
 	async validateUserById(
 		userId: string,
 	): Promise<{ id: string; email: string; name: string | null } | null> {
@@ -174,7 +166,6 @@ export class AuthService {
 		});
 	}
 
-	/** Returns the current user payload or 401 when missing. */
 	async getMe(userId: string): Promise<CurrentUserPayload> {
 		const user = await this.validateUserById(userId);
 		if (!user) {
@@ -183,7 +174,6 @@ export class AuthService {
 		return user;
 	}
 
-	/** Validates a refresh token and returns the associated user. */
 	async validateRefreshToken(rawToken: string): Promise<{
 		tokenId: string;
 		user: CurrentUserPayload;
@@ -191,24 +181,20 @@ export class AuthService {
 		return this.tokenService.validateRefreshToken(rawToken);
 	}
 
-	/** Rotates refresh token and returns a new access token. */
 	async rotateRefreshToken(
 		rawToken: string,
 	): Promise<AuthResponseType & { refreshToken: string }> {
 		return this.tokenService.rotateRefreshToken(rawToken);
 	}
 
-	/** Revokes the refresh session when a token is present. */
 	async logout(rawToken: string | undefined): Promise<void> {
 		return this.tokenService.logout(rawToken);
 	}
 
-	/** Delegates to the password reset service to email a reset code. */
 	async forgotPassword(email: string): Promise<{ message: string }> {
 		return this.passwordResetService.forgotPassword(email);
 	}
 
-	/** Applies a valid reset code and updates the password hash. */
 	async resetPassword(
 		email: string,
 		code: string,

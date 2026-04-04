@@ -4,16 +4,12 @@ import { SkipThrottle } from "@nestjs/throttler";
 import { Public } from "../../common/decorators/public.decorator";
 import { HealthService } from "./health.service";
 
-/**
- * Liveness and readiness endpoints for orchestrators and load balancers.
- */
 @SkipThrottle()
 @ApiTags("Health")
 @Controller("health")
 export class HealthController {
 	constructor(@Inject(HealthService) private readonly health: HealthService) {}
 
-	/** Process is running. */
 	@Public()
 	@Get("live")
 	@ApiOperation({ summary: "Liveness probe" })
@@ -21,7 +17,6 @@ export class HealthController {
 		return { status: "ok" };
 	}
 
-	/** Database connectivity check. */
 	@Public()
 	@Get("ready")
 	@ApiOperation({ summary: "Readiness probe (database)" })

@@ -27,9 +27,6 @@ import { LogsListQueryDto } from "./dto/logs-list-query.dto";
 import { LogsService } from "./logs.service";
 import { ErrorResponseSchema } from "src/common/swagger/schemas/error-response.schema";
 
-/**
- * HTTP API for request log inspection.
- */
 @ApiTags("Logs")
 @ApiBearerAuth("Bearer")
 @Controller("logs")
@@ -86,7 +83,6 @@ export class LogsController {
 			$ref: getSchemaPath(ErrorResponseSchema),
 		},
 	})
-	/** Lists logs using validated pagination and filter query parameters. */
 	async findByEndpoint(
 		@Param("endpointId") endpointId: string,
 		@CurrentUser() user: CurrentUserPayload,
@@ -126,7 +122,6 @@ export class LogsController {
 			$ref: getSchemaPath(ErrorResponseSchema),
 		},
 	})
-	/** Fetches a single log with its parent endpoint when authorized. */
 	async findOne(
 		@Param("id") id: string,
 		@CurrentUser() user: CurrentUserPayload,

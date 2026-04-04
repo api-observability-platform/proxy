@@ -8,9 +8,6 @@ import { ConfigKeyEnum } from "../common/enums/config.enum.js";
 import { extractSlugAndPathFromProxyRequest } from "./proxy-routing.util.js";
 import { ProxyService } from "./proxy.service.js";
 
-/**
- * Upgrades WebSocket connections and pipes frames to the configured upstream.
- */
 @Injectable()
 export class WebSocketProxyService {
 	private readonly logger = new Logger(WebSocketProxyService.name);

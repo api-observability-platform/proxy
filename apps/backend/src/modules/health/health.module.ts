@@ -3,9 +3,6 @@ import { PrismaModule } from "../../core/prisma/prisma.module";
 import { HealthController } from "./health.controller";
 import { HealthService } from "./health.service";
 
-/**
- * Kubernetes-style liveness/readiness probes.
- */
 @Module({
 	imports: [PrismaModule],
 	controllers: [HealthController],

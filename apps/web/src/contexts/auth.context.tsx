@@ -19,7 +19,7 @@ import type { UserDto } from "@proxy-server/shared";
 const AUTH_SESSION_QUERY_KEY = ["auth", "session"] as const;
 
 const SESSION_STORAGE_KEY = "proxy-server.session";
-/** Legacy key (token only); migrated to full session JSON on next write. */
+
 const LEGACY_ACCESS_TOKEN_KEY = "proxy-server.accessToken";
 
 type AuthSession = { accessToken: string; user: UserDto } | null;
@@ -38,7 +38,6 @@ function parseStoredUser(value: unknown): UserDto | null {
 	return { id: o.id, email: o.email, name: o.name as string | null };
 }
 
-/** Valid non-null session from storage, or undefined if missing/invalid. */
 function readStoredSession(): AuthSession | undefined {
 	if (typeof sessionStorage === "undefined") {
 		return undefined;
@@ -78,7 +77,6 @@ function readLegacyAccessTokenOnly(): string | null {
 	}
 }
 
-/** Bootstrap ref: full session token, or legacy token while refresh loads user. */
 function readBootstrapAccessToken(): string | null {
 	const full = readStoredSession();
 	if (full) {
@@ -135,10 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const session = sessionQuery.data;
 	const user = session?.user ?? null;
 	const accessToken = session?.accessToken ?? null;
-	/**
-	 * No `initialData`: first paint stays `pending` until `/auth/refresh` resolves, so `isPending`
-	 * is a reliable gate. (`initialData` forces `status: success` and breaks that gate.)
-	 */
+
 	const isReady = !sessionQuery.isPending;
 	if (sessionQuery.data !== undefined) {
 		const nextToken = sessionQuery.data?.accessToken ?? null;
@@ -215,9 +210,6 @@ export const useAuth = () => {
 	return ctx;
 };
 
-/**
- * Use as TanStack Query `enabled` for calls that need a hydrated access token after reload.
- */
 export function useCanQueryProtectedApi(): boolean {
 	const { isReady, accessToken } = useAuth();
 	return isReady && Boolean(accessToken);

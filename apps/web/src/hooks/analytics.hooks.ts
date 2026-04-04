@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { analyticsApi } from "@/api/client.api";
 import { useCanQueryProtectedApi } from "@/contexts/auth.context";
 
-/** Poll while viewing an endpoint so proxy traffic from other tabs shows up without manual reload. */
 const ANALYTICS_POLL_MS = 10_000;
 
 const analyticsQueryKeys = {

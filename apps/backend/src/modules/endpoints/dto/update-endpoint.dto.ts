@@ -17,7 +17,6 @@ import { RateLimitConfigDto } from "./rate-limit-config.dto";
 import { TransformRuleDto } from "./transform-rule.dto";
 import { ENDPOINT_PROTOCOLS } from "@proxy-server/shared";
 
-/** Partial update payload for an existing proxy endpoint. */
 export class UpdateEndpointDto {
 	@ApiProperty({
 		description: "Updated display name for the proxy endpoint",

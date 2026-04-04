@@ -79,10 +79,6 @@ async function parseResponse<T>(res: Response): Promise<T> {
 
 type RefreshSessionResult = { accessToken: string; user: UserDto } | null;
 
-/**
- * Single in-flight refresh so parallel 401s do not rotate the refresh token
- * multiple times (which would revoke the cookie mid-flight and fail later calls).
- */
 let refreshInFlight: Promise<RefreshSessionResult> | null = null;
 
 export async function refreshAccessToken(): Promise<RefreshSessionResult> {

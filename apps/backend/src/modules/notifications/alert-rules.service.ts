@@ -14,9 +14,6 @@ type AlertRuleWithChannel = Prisma.AlertRuleGetPayload<{
 	include: { channel: true };
 }>;
 
-/**
- * Manages alert rules linking endpoints to notification channels.
- */
 @Injectable()
 export class AlertRulesService {
 	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}

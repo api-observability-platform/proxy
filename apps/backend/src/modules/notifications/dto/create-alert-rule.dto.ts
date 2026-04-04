@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsUUID, MinLength } from "class-validator";
 
-/** Links an endpoint to a channel with a simple condition expression. */
 export class CreateAlertRuleDto {
 	@ApiProperty({
 		description: "ID of the endpoint to monitor",

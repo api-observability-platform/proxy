@@ -23,9 +23,6 @@ type AlertContext = {
 	dashboardBaseUrl: string;
 };
 
-/**
- * Evaluates alert rules after proxied requests and dispatches notifications.
- */
 @Injectable()
 export class NotificationsService {
 	private readonly logger = new Logger(NotificationsService.name);

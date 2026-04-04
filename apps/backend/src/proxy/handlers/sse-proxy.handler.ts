@@ -7,9 +7,6 @@ import { ProxyService } from "../proxy.service.js";
 import { TransformPipelineService } from "../transform-pipeline.service.js";
 import type { ProtocolHandler } from "./protocol-handler.interface.js";
 
-/**
- * Server-Sent Events proxy: streams upstream body without buffering the full response.
- */
 @Injectable()
 export class SseProxyHandler implements ProtocolHandler {
 	private readonly logger = new Logger(SseProxyHandler.name);

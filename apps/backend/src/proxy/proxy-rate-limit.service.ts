@@ -7,9 +7,6 @@ import type { Endpoint, Prisma } from "@prisma/generated/client";
 
 const RATE_KEY_PREFIX = "ratelimit:";
 
-/**
- * Sliding-window request limiting per endpoint using Redis or in-memory fallback.
- */
 @Injectable()
 export class ProxyRateLimitService {
 	private readonly logger = new Logger(ProxyRateLimitService.name);
@@ -58,9 +55,6 @@ export class ProxyRateLimitService {
 		return { maxRequests, windowSeconds };
 	}
 
-	/**
-	 * Returns true if the request should be rejected as rate-limited.
-	 */
 	async shouldReject(endpoint: Endpoint, clientKey: string): Promise<boolean> {
 		const cfg = this.parseConfig(endpoint.rateLimitConfig ?? null);
 		if (!cfg) return false;

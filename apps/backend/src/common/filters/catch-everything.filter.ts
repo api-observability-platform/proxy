@@ -28,7 +28,6 @@ const PRISMA_ERROR_MAP: Record<string, HttpStatus> = {
 const INTERNAL_ERROR_MESSAGE = "Internal server error";
 const INTERNAL_ERROR_TYPE = "InternalServerErrorException";
 
-/** Maps exceptions to a stable JSON error body and logs server errors. */
 @Catch()
 export class CatchEverythingFilter implements ExceptionFilter {
 	private readonly logger = new Logger(CatchEverythingFilter.name);
@@ -38,7 +37,6 @@ export class CatchEverythingFilter implements ExceptionFilter {
 		@Inject(ConfigService) private readonly configService: ConfigService,
 	) {}
 
-	/** Normalizes any thrown value to the public `ErrorResponseBody` contract. */
 	catch(exception: unknown, host: ArgumentsHost): void {
 		const { httpAdapter } = this.httpAdapterHost;
 		const ctx = host.switchToHttp();

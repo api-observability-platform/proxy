@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { outboundWebhookConstants } from "./outbound-webhook.constants";
 
-/**
- * Sends text messages via the Telegram Bot API.
- */
 @Injectable()
 export class TelegramService {
 	async send(

@@ -11,9 +11,6 @@ import { ReportsService } from "./reports.service";
 import { SlackService } from "./slack.service";
 import { TelegramService } from "./telegram.service";
 
-/**
- * Notifications, channels, and alert rules feature module.
- */
 @Module({
 	imports: [ConfigModule, EmailModule],
 	controllers: [NotificationsController],

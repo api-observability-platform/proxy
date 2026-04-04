@@ -4,9 +4,6 @@ import Redis from "ioredis";
 import { ConfigKeyEnum } from "../../common/enums/config.enum";
 import { alertThrottleConstants } from "./alert-throttle.constants";
 
-/**
- * Redis-backed (or in-memory fallback) cooldown for alert spam prevention.
- */
 @Injectable()
 export class AlertThrottleService {
 	private readonly logger = new Logger(AlertThrottleService.name);
@@ -67,7 +64,6 @@ export class AlertThrottleService {
 		this.memory.set(k, Date.now());
 	}
 
-	/** Extends alert cooldown (e.g. user mute from chat). */
 	async setCooldownMs(
 		endpointId: string,
 		channelId: string,

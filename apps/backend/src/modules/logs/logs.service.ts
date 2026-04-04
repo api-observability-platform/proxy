@@ -13,9 +13,6 @@ import { proxyRequestConstants } from "../../proxy/proxy-request.constants";
 import { type ProxyLogPayload, ProxyService } from "../../proxy/proxy.service";
 import type { LogsListQueryDto } from "./dto/logs-list-query.dto";
 
-/**
- * Read access to persisted proxy request logs.
- */
 @Injectable()
 export class LogsService {
 	constructor(
@@ -23,7 +20,6 @@ export class LogsService {
 		@Inject(ProxyService) private readonly proxyService: ProxyService,
 	) {}
 
-	/** Lists logs for an endpoint the user owns with optional filters. */
 	async findByEndpoint(
 		endpointId: string,
 		userId: string,
@@ -57,7 +53,6 @@ export class LogsService {
 		return { logs, total };
 	}
 
-	/** Loads one log row with endpoint context when the user owns the endpoint. */
 	async findOne(
 		logId: string,
 		userId: string,
@@ -79,7 +74,6 @@ export class LogsService {
 		return log;
 	}
 
-	/** Replays a stored HTTP-like request against the endpoint upstream and creates a new log. */
 	async replay(
 		logId: string,
 		userId: string,

@@ -7,9 +7,6 @@ import type {
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { analyticsConstants } from "./analytics.constants";
 
-/**
- * Aggregates request log metrics per endpoint for dashboards.
- */
 @Injectable()
 export class AnalyticsService {
 	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
@@ -27,7 +24,6 @@ export class AnalyticsService {
 		return endpoint;
 	}
 
-	/** Aggregates totals, latency, uptime and error rate for dashboards. */
 	async getSummary(
 		endpointId: string,
 		userId: string,
@@ -80,7 +76,6 @@ export class AnalyticsService {
 		};
 	}
 
-	/** Returns time-bucketed request volume and latency for charts. */
 	async getTimeseries(
 		endpointId: string,
 		userId: string,
@@ -124,7 +119,6 @@ export class AnalyticsService {
 		}));
 	}
 
-	/** Groups request counts by HTTP method and response status. */
 	async getBreakdown(
 		endpointId: string,
 		userId: string,

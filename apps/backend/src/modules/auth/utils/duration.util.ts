@@ -1,4 +1,3 @@
-/** Parses strings like 15m, 7d, 3600s into milliseconds. Fallback: 7 days. */
 export function parseDurationToMs(input: string): number {
 	const s = input.trim();
 	const m = /^(\d+)([smhd])$/i.exec(s);

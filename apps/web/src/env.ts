@@ -9,15 +9,11 @@ const viteEnvSchema = z.object({
 });
 
 type WebEnv = {
-	/** Public API origin for building proxy URLs (e.g. `https://api.example.com`). */
 	publicApiOrigin: string;
 };
 
 let cachedWebEnv: WebEnv | null = null;
 
-/**
- * Validates `VITE_*` at startup. When `VITE_API_URL` is unset, uses same heuristic as before for local dev.
- */
 export function initWebEnv(): WebEnv {
 	const parsed = viteEnvSchema.safeParse(import.meta.env);
 	if (!parsed.success) {

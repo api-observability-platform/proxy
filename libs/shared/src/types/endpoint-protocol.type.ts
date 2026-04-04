@@ -1,4 +1,3 @@
-/** Proxy protocols supported by an endpoint (mirrors Prisma `EndpointProtocol`). */
 export const ENDPOINT_PROTOCOLS = [
 	"HTTP",
 	"WEBSOCKET",

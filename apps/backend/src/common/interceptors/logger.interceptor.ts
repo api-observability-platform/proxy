@@ -16,9 +16,6 @@ import { EnvironmentsEnum } from "../enums/environments.enum.js";
 
 type LoggerExpressionType = "incoming" | "error" | "success";
 
-/**
- * Development-only structured request/response logging.
- */
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
 	private readonly logger = new Logger(LoggingInterceptor.name);

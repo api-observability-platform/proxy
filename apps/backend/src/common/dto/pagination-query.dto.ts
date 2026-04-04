@@ -3,9 +3,6 @@ import { Type } from "class-transformer";
 import { IsInt, IsOptional, Max, Min } from "class-validator";
 import { paginationConstants } from "../constants/pagination.constants";
 
-/**
- * Standard limit/offset query parameters for paginated list endpoints.
- */
 export class PaginationQueryDto {
 	@ApiPropertyOptional({
 		description: "Number of records to return (max 100)",

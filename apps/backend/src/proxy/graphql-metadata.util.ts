@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/generated/client";
 
-/** Parses a GraphQL-over-HTTP JSON body for analytics metadata. */
 export function extractGraphqlRequestMetadata(
 	body: Buffer | null,
 ): Prisma.InputJsonValue | null {

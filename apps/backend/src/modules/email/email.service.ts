@@ -5,9 +5,6 @@ import * as nodemailer from "nodemailer";
 import { ConfigKeyEnum } from "../../common/enums/config.enum";
 import { emailConstants } from "./email.constants";
 
-/**
- * Sends transactional email via SMTP when configured; logs codes in dev otherwise.
- */
 @Injectable()
 export class EmailService {
 	private readonly logger = new Logger(EmailService.name);

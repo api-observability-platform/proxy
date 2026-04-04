@@ -10,9 +10,6 @@ import {
 } from "class-validator";
 import { paginationConstants } from "../../../common/constants/pagination.constants";
 
-/**
- * Query parameters for `GET /logs/endpoint/:endpointId`.
- */
 export class LogsListQueryDto {
 	@ApiPropertyOptional({ description: "Max results", default: 50 })
 	@IsOptional()

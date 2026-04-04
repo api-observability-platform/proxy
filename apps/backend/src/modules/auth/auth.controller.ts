@@ -50,9 +50,6 @@ import { parseDurationToMs } from "./utils/duration.util";
 
 const REFRESH_COOKIE_NAME = "refresh_token";
 
-/**
- * Registration, session, and password recovery HTTP handlers.
- */
 @ApiTags("Auth")
 @ApiExtraModels(AuthResponseSchema)
 @Controller("auth")
@@ -134,7 +131,6 @@ export class AuthController {
 		description: "Internal Server Error - Unexpected server error",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	/** Starts registration by creating an unverified user and emailing a code. */
 	async signUp(@Body() signUpDto: SignUpDto): Promise<{ message: string }> {
 		return this.authService.signUp(signUpDto);
 	}
@@ -158,7 +154,6 @@ export class AuthController {
 		description: "Invalid or expired code",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	/** Completes email verification and sets the refresh cookie. */
 	async verifyEmail(
 		@Body() dto: VerifyEmailDto,
 		@Res({ passthrough: true }) res: Response,
@@ -179,7 +174,6 @@ export class AuthController {
 	@ApiBody({ type: ResendVerificationDto })
 	@ApiOperation({ summary: "Resend verification code", security: [] })
 	@ApiOkResponse({ description: "Generic success message" })
-	/** Sends another verification email when the account exists and is still unverified. */
 	async resendVerification(
 		@Body() dto: ResendVerificationDto,
 	): Promise<{ message: string }> {
@@ -222,7 +216,6 @@ export class AuthController {
 		description: "Internal Server Error - Unexpected server error",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	/** Authenticates a verified user and sets the refresh cookie. */
 	async signIn(
 		@Body() signInDto: SignInDto,
 		@Res({ passthrough: true }) res: Response,
@@ -243,7 +236,6 @@ export class AuthController {
 	@ApiBody({ type: ForgotPasswordDto })
 	@ApiOperation({ summary: "Request password reset code", security: [] })
 	@ApiOkResponse({ description: "Generic message (no email enumeration)" })
-	/** Emails a reset code when the account exists (no user enumeration). */
 	async forgotPassword(
 		@Body() dto: ForgotPasswordDto,
 	): Promise<{ message: string }> {
@@ -266,7 +258,6 @@ export class AuthController {
 		description: "Invalid or expired code",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	/** Validates the emailed code and sets a new password hash. */
 	async resetPassword(
 		@Body() dto: ResetPasswordDto,
 	): Promise<{ message: string }> {
@@ -290,7 +281,6 @@ export class AuthController {
 		description: "Invalid session",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	/** Exchanges a valid refresh cookie for new access and refresh tokens. */
 	async refresh(
 		@Req() req: Request & RequestWithRefreshAuth,
 		@Res({ passthrough: true }) res: Response,
@@ -307,7 +297,6 @@ export class AuthController {
 	@Post("logout")
 	@ApiOperation({ summary: "Revoke refresh session", security: [] })
 	@ApiOkResponse({ description: "Logged out" })
-	/** Revokes the refresh token and clears the httpOnly cookie. */
 	async logout(
 		@Req() req: Request,
 		@Res({ passthrough: true }) res: Response,
@@ -325,7 +314,6 @@ export class AuthController {
 		description: "Unauthorized",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	/** Returns the JWT subject as a profile payload. */
 	async me(
 		@CurrentUser() user: CurrentUserPayload,
 	): Promise<CurrentUserPayload> {

@@ -22,7 +22,6 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { ProxyMiddleware } from "./proxy/proxy.middleware";
 import { ProxyModule } from "./proxy/proxy.module";
 
-/** Root Nest module: configuration, guards, and feature area imports. */
 @Module({
 	imports: [
 		CoreModule,

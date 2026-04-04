@@ -12,9 +12,6 @@ import { PasswordResetService } from "./password-reset.service";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { TokenService } from "./token.service";
 
-/**
- * Authentication, JWT, and refresh session feature module.
- */
 @Module({
 	imports: [
 		EmailModule,

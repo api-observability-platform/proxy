@@ -1,4 +1,3 @@
-/** Single transformation rule applied to proxied HTTP traffic. */
 export type TransformRule =
 	| {
 			type: "ADD_HEADER";

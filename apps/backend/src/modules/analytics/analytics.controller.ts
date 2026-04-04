@@ -15,9 +15,6 @@ import { AnalyticsService } from "./analytics.service";
 import { AnalyticsTimeseriesQueryDto } from "./dto/analytics-timeseries-query.dto";
 import { ErrorResponseSchema } from "src/common/swagger/schemas/error-response.schema";
 
-/**
- * Read-only analytics routes for per-endpoint dashboards.
- */
 @ApiTags("Analytics")
 @ApiBearerAuth("Bearer")
 @Controller("analytics")
@@ -57,7 +54,6 @@ export class AnalyticsController {
 			$ref: getSchemaPath(ErrorResponseSchema),
 		},
 	})
-	/** Returns rollup metrics for an owned endpoint. */
 	getSummary(
 		@Param("endpointId") endpointId: string,
 		@CurrentUser("id") userId: string,
@@ -94,7 +90,6 @@ export class AnalyticsController {
 			$ref: getSchemaPath(ErrorResponseSchema),
 		},
 	})
-	/** Returns validated bucket/limit query parameters to the timeseries query. */
 	getTimeseries(
 		@Param("endpointId") endpointId: string,
 		@CurrentUser("id") userId: string,
@@ -136,7 +131,6 @@ export class AnalyticsController {
 			$ref: getSchemaPath(ErrorResponseSchema),
 		},
 	})
-	/** Returns method/status histograms for chart breakdowns. */
 	getBreakdown(
 		@Param("endpointId") endpointId: string,
 		@CurrentUser("id") userId: string,

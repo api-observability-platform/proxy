@@ -2,7 +2,6 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsInt, Max, Min } from "class-validator";
 
-/** Per-endpoint rate limit configuration. */
 export class RateLimitConfigDto {
 	@ApiProperty({
 		description: "Max requests allowed in the window",

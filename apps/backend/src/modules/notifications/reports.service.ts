@@ -5,9 +5,6 @@ import { EmailService } from "../email/email.service";
 import { SlackService } from "./slack.service";
 import { TelegramService } from "./telegram.service";
 
-/**
- * Sends scheduled analytics digests to user channels.
- */
 @Injectable()
 export class ReportsService {
 	private readonly logger = new Logger(ReportsService.name);

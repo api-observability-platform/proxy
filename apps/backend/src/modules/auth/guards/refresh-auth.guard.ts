@@ -8,9 +8,6 @@ import {
 import { AuthService } from "../auth.service";
 import type { RequestWithRefreshAuth } from "../types/request-with-refresh-auth.type";
 
-/**
- * Ensures a valid refresh cookie is present and attaches parsed session to the request.
- */
 @Injectable()
 export class RefreshAuthGuard implements CanActivate {
 	constructor(@Inject(AuthService) private readonly authService: AuthService) {}

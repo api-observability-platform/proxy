@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/generated/client";
 
-/** Merges base request metadata with optional enricher output for persistence. */
 export function mergeLogMetadata(
 	base: Prisma.InputJsonValue | null | undefined,
 	added: Record<string, unknown> | null | undefined,

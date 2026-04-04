@@ -34,7 +34,6 @@ function parseTransformRules(
 	return value as TransformRule[];
 }
 
-/** Strips internal fields and normalizes dates for API responses. */
 export function mapEndpointToDto(endpoint: Endpoint): EndpointDto {
 	return {
 		id: endpoint.id,

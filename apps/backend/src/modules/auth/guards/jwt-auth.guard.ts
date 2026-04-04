@@ -4,7 +4,6 @@ import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 import { IS_PUBLIC_KEY } from "../../../common/constants/is-public-key.constant";
 
-/** Rejects unauthenticated access unless the route is marked with the public metadata key. */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
 	constructor(private readonly reflector: Reflector) {

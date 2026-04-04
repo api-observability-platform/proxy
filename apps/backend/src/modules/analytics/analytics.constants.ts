@@ -1,6 +1,3 @@
-/**
- * Thresholds and defaults for analytics aggregation queries.
- */
 export const analyticsConstants = {
 	LAST_24H_MS: 24 * 60 * 60 * 1000,
 	HTTP_STATUS_SERVER_ERROR_THRESHOLD: 500,

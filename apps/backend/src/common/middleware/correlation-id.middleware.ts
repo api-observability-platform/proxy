@@ -4,7 +4,6 @@ import type { NextFunction, Request, Response } from "express";
 
 const HEADER = "x-correlation-id";
 
-/** Ensures each request has a correlation id for structured logs and tracing. */
 @Injectable()
 export class CorrelationIdMiddleware implements NestMiddleware {
 	use(req: Request, res: Response, next: NextFunction): void {
