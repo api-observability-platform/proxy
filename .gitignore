@@ -1,19 +1,16 @@
 **/node_modules
 
-**/.env*
+.env*
 !.env.example
 
 **/dist
 **/tsconfig.tsbuildinfo
 
-**/generated
+apps/backend/prisma/generated
+apps/backend/compodoc
 
 **/npm-debug.log*
 
 **/.DS_Store
 
-**/documentation
-
 .cursor
-
-docs

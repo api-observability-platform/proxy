@@ -2,7 +2,14 @@
 	"root": false,
 	"extends": "//",
 	"files": {
-		"includes": ["**", "!prisma", "!dist", "!documentation"]
+		"includes": [
+			"**",
+			"!prisma",
+			"!dist",
+			"!compodoc",
+			"!node_modules",
+			"!postman"
+		]
 	},
 	"linter": {
 		"rules": {

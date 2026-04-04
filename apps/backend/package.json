@@ -16,7 +16,7 @@
 		"start:dev": "nest start --watch",
 		"start:debug": "nest start --debug --watch",
 		"start:prod": "node dist/main",
-		"start:docs": "npx @compodoc/compodoc -p tsconfig.json -s",
+		"compodoc": "npx compodoc -p tsconfig.doc.json -r 3001 -d compodoc --hideGenerator --minimal -s -w",
 		"db:generate": "prisma generate",
 		"db:migrate:dev": "prisma migrate dev",
 		"db:migrate:deploy": "prisma migrate deploy",
