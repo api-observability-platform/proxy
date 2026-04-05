@@ -8,8 +8,6 @@
 		"types": ["vite/client"],
 		"jsx": "react-jsx",
 		"noEmit": true,
-		"pretty": true,
-		"diagnostics": true,
 		"paths": {
 			"@/*": ["./src/*"]
 		}

@@ -8,6 +8,10 @@
 		"rootDir": "src",
 		"declaration": true,
 		"declarationMap": true,
+		"incremental": true,
+		"tsBuildInfoFile": "./dist/.tsbuildinfo.build",
+		"noEmitOnError": true,
+		"removeComments": true,
 		"esModuleInterop": true
 	},
 	"include": ["src/**/*.ts"]
