@@ -64,8 +64,7 @@ export class PasswordResetService {
 			where: { email: emailLower },
 		});
 		if (
-			!user ||
-			!user.passwordResetCodeHash ||
+			!user?.passwordResetCodeHash ||
 			!user.passwordResetExpiresAt ||
 			user.passwordResetExpiresAt < new Date()
 		) {

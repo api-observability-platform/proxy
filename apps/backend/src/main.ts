@@ -3,18 +3,89 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Logger, ValidationPipe, VersioningType } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { HttpAdapterHost, NestFactory } from "@nestjs/core";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
-import { setupSwagger } from "./bootstrap/setup-swagger";
 import { ConfigKeyEnum } from "./common/enums/config.enum";
 import { EnvironmentsEnum } from "./common/enums/environments.enum";
 import { CatchEverythingFilter } from "./common/filters/catch-everything.filter";
 import { LoggingInterceptor } from "./common/interceptors/logger.interceptor";
 import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
+import { AuthResponseSchema } from "./common/swagger/schemas/auth-response.schema";
+import { AuthUserSchema } from "./common/swagger/schemas/auth-user.schema";
+import { ErrorResponseSchema } from "./common/swagger/schemas/error-response.schema";
 import { WebSocketProxyService } from "./proxy/websocket-proxy.service";
 
 const logger = new Logger("Bootstrap");
+
+export const setupSwagger = (
+	app: NestExpressApplication,
+	configService: ConfigService,
+	appPort: number,
+): string => {
+	const swaggerPath = configService.getOrThrow<string>(
+		`${ConfigKeyEnum.SWAGGER}.swaggerPath`,
+	);
+	const appName = configService.getOrThrow<string>(
+		`${ConfigKeyEnum.SWAGGER}.swaggerName`,
+	);
+	const appDescription = configService.getOrThrow<string>(
+		`${ConfigKeyEnum.SWAGGER}.swaggerDescr`,
+	);
+	const siteTitle = configService.getOrThrow<string>(
+		`${ConfigKeyEnum.SWAGGER}.swaggerSiteTitle`,
+	);
+
+	const swaggerConfig = new DocumentBuilder()
+		.setTitle(appName)
+		.setDescription(appDescription)
+		.setVersion("1.0")
+		.setContact("Proxy Server", "", "")
+		.setLicense("ISC", "")
+		.addServer(`http://localhost:${appPort}`, EnvironmentsEnum.DEVELOPMENT)
+		.addServer(`http://lvh.me:${appPort}`, EnvironmentsEnum.PRODUCTION)
+		.addBearerAuth(
+			{
+				bearerFormat: "JWT",
+				description:
+					"Enter JWT access token from /auth/sign-in, /auth/verify-email, or /auth/refresh",
+				in: "header",
+				name: "Authorization",
+				scheme: "bearer",
+				type: "http",
+			},
+			"Bearer",
+		)
+		.addSecurityRequirements("Bearer")
+		.addTag("Auth", "Authentication endpoints (no Bearer token required)")
+		.addTag("Health", "Liveness and readiness probes")
+		.addTag("Endpoints", "Proxy endpoint management")
+		.addTag("Analytics", "Request analytics and metrics")
+		.addTag("Logs", "Request log access")
+		.addTag("Notifications", "Alert rules and notification channels")
+		.build();
+
+	const document = SwaggerModule.createDocument(app, swaggerConfig, {
+		deepScanRoutes: true,
+		ignoreGlobalPrefix: false,
+		operationIdFactory: (controllerKey: string, methodKey: string) =>
+			`${controllerKey}_${methodKey}`,
+		extraModels: [AuthResponseSchema, AuthUserSchema, ErrorResponseSchema],
+	});
+
+	SwaggerModule.setup(swaggerPath, app, document, {
+		customSiteTitle: siteTitle,
+		explorer: false,
+		jsonDocumentUrl: `${swaggerPath}/json`,
+		yamlDocumentUrl: `${swaggerPath}/yaml`,
+		swaggerOptions: {
+			persistAuthorization: true,
+		},
+	});
+
+	return swaggerPath;
+};
 
 (async () => {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule);
