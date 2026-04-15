@@ -21,10 +21,11 @@ export class ProxyMiddleware implements NestMiddleware {
 		@Inject(ProxyService) private readonly proxyService: ProxyService,
 		@Inject(ConfigService) readonly configService: ConfigService,
 		@Inject(ProxyRateLimitService)
-		private readonly rateLimit: ProxyRateLimitService,
-		@Inject(HttpProxyHandler) private readonly httpHandler: HttpProxyHandler,
+		private readonly proxyRateLimitService: ProxyRateLimitService,
+		@Inject(HttpProxyHandler)
+		private readonly httpProxyHandler: HttpProxyHandler,
 	) {
-		this.handlers = [this.httpHandler];
+		this.handlers = [this.httpProxyHandler];
 
 		const { baseDomain } = configService.getOrThrow<ProxyType>(
 			ConfigKeyEnum.PROXY,
@@ -71,7 +72,7 @@ export class ProxyMiddleware implements NestMiddleware {
 			this.proxyService.getClientIp(req.headers as HeadersRecord) ??
 			req.socket.remoteAddress ??
 			"unknown";
-		if (await this.rateLimit.shouldReject(endpoint, clientKey)) {
+		if (await this.proxyRateLimitService.shouldReject(endpoint, clientKey)) {
 			res.status(proxyRequestConstants.HTTP_TOO_MANY_REQUESTS).json({
 				error: "Too Many Requests",
 				message: "Rate limit exceeded for this endpoint",

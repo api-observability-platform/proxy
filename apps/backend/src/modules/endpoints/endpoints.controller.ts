@@ -25,8 +25,8 @@ import {
 	ApiTooManyRequestsResponse,
 	getSchemaPath,
 } from "@nestjs/swagger";
-import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { CreateEndpointDto } from "./dto/create-endpoint.dto";
 import { ListEndpointsQueryDto } from "./dto/list-endpoints-query.dto";
 import { UpdateEndpointDto } from "./dto/update-endpoint.dto";

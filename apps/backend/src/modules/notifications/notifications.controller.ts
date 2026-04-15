@@ -23,9 +23,9 @@ import {
 	ApiTooManyRequestsResponse,
 	getSchemaPath,
 } from "@nestjs/swagger";
-import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
+import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { AlertRulesService } from "./alert-rules.service";
 import { CreateAlertRuleDto } from "./dto/create-alert-rule.dto";
 import { CreateChannelDto } from "./dto/create-channel.dto";
@@ -39,10 +39,11 @@ import { ReportSchedulesService } from "./report-schedules.service";
 export class NotificationsController {
 	constructor(
 		@Inject(NotificationChannelsService)
-		private readonly channels: NotificationChannelsService,
-		@Inject(AlertRulesService) private readonly alertRules: AlertRulesService,
+		private readonly notificationChannelsService: NotificationChannelsService,
+		@Inject(AlertRulesService)
+		private readonly alertRulesService: AlertRulesService,
 		@Inject(ReportSchedulesService)
-		private readonly reportSchedules: ReportSchedulesService,
+		private readonly reportSchedulesService: ReportSchedulesService,
 	) {}
 
 	@Post("channels")
@@ -68,7 +69,7 @@ export class NotificationsController {
 		@CurrentUser("id") userId: string,
 		@Body() dto: CreateChannelDto,
 	): ReturnType<NotificationChannelsService["create"]> {
-		return this.channels.create(userId, dto);
+		return this.notificationChannelsService.create(userId, dto);
 	}
 
 	@Get("channels")
@@ -93,7 +94,7 @@ export class NotificationsController {
 		@CurrentUser("id") userId: string,
 		@Query() query: PaginationQueryDto,
 	): ReturnType<NotificationChannelsService["findAll"]> {
-		return this.channels.findAll(userId, query);
+		return this.notificationChannelsService.findAll(userId, query);
 	}
 
 	@Delete("channels/:id")
@@ -126,7 +127,7 @@ export class NotificationsController {
 		@Param("id") id: string,
 		@CurrentUser("id") userId: string,
 	): ReturnType<NotificationChannelsService["remove"]> {
-		return this.channels.remove(id, userId);
+		return this.notificationChannelsService.remove(id, userId);
 	}
 
 	@Post("alert-rules")
@@ -159,7 +160,7 @@ export class NotificationsController {
 		@CurrentUser("id") userId: string,
 		@Body() dto: CreateAlertRuleDto,
 	): ReturnType<AlertRulesService["create"]> {
-		return this.alertRules.create(userId, dto);
+		return this.alertRulesService.create(userId, dto);
 	}
 
 	@Get("alert-rules/endpoint/:endpointId")
@@ -196,7 +197,7 @@ export class NotificationsController {
 		@CurrentUser("id") userId: string,
 		@Query() query: PaginationQueryDto,
 	): ReturnType<AlertRulesService["findByEndpoint"]> {
-		return this.alertRules.findByEndpoint(endpointId, userId, query);
+		return this.alertRulesService.findByEndpoint(endpointId, userId, query);
 	}
 
 	@Delete("alert-rules/:id")
@@ -228,7 +229,7 @@ export class NotificationsController {
 		@Param("id") id: string,
 		@CurrentUser("id") userId: string,
 	): ReturnType<AlertRulesService["remove"]> {
-		return this.alertRules.remove(id, userId);
+		return this.alertRulesService.remove(id, userId);
 	}
 
 	@Post("report-schedules")
@@ -238,7 +239,7 @@ export class NotificationsController {
 		@CurrentUser("id") userId: string,
 		@Body() dto: CreateReportScheduleDto,
 	): ReturnType<ReportSchedulesService["create"]> {
-		return this.reportSchedules.create(userId, dto);
+		return this.reportSchedulesService.create(userId, dto);
 	}
 
 	@Get("report-schedules")
@@ -246,7 +247,7 @@ export class NotificationsController {
 	listReportSchedules(
 		@CurrentUser("id") userId: string,
 	): ReturnType<ReportSchedulesService["list"]> {
-		return this.reportSchedules.list(userId);
+		return this.reportSchedulesService.list(userId);
 	}
 
 	@Delete("report-schedules/:id")
@@ -255,6 +256,6 @@ export class NotificationsController {
 		@Param("id") id: string,
 		@CurrentUser("id") userId: string,
 	): ReturnType<ReportSchedulesService["remove"]> {
-		return this.reportSchedules.remove(id, userId);
+		return this.reportSchedulesService.remove(id, userId);
 	}
 }

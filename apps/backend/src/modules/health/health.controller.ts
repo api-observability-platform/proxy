@@ -8,7 +8,9 @@ import { HealthService } from "./health.service";
 @ApiTags("Health")
 @Controller("health")
 export class HealthController {
-	constructor(@Inject(HealthService) private readonly health: HealthService) {}
+	constructor(
+		@Inject(HealthService) private readonly healthService: HealthService,
+	) {}
 
 	@Public()
 	@Get("live")
@@ -21,7 +23,7 @@ export class HealthController {
 	@Get("ready")
 	@ApiOperation({ summary: "Readiness probe (database)" })
 	async readiness(): Promise<{ status: string }> {
-		await this.health.assertDatabaseReady();
+		await this.healthService.assertDatabaseReady();
 		return { status: "ok" };
 	}
 }

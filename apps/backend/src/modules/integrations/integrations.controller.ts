@@ -32,7 +32,7 @@ type TelegramUpdate = {
 export class IntegrationsController {
 	constructor(
 		@Inject(AlertThrottleService)
-		private readonly throttle: AlertThrottleService,
+		private readonly alertThrottleService: AlertThrottleService,
 	) {}
 
 	@Public()
@@ -58,7 +58,11 @@ export class IntegrationsController {
 					ms?: number;
 				};
 				if (v.endpointId && v.channelId && v.ms) {
-					void this.throttle.setCooldownMs(v.endpointId, v.channelId, v.ms);
+					void this.alertThrottleService.setCooldownMs(
+						v.endpointId,
+						v.channelId,
+						v.ms,
+					);
 				}
 			} catch {
 				// ignore

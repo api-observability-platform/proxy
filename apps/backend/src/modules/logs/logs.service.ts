@@ -15,7 +15,7 @@ import { proxyRequestConstants } from "../../proxy/proxy-request.constants";
 @Injectable()
 export class LogsService {
 	constructor(
-		@Inject(PrismaService) private readonly prisma: PrismaService,
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
 		@Inject(ProxyService) private readonly proxyService: ProxyService,
 	) {}
 
@@ -24,7 +24,7 @@ export class LogsService {
 		userId: string,
 		query: LogsListQueryDto,
 	): Promise<{ logs: RequestLog[]; total: number }> {
-		const endpoint = await this.prisma.endpoint.findFirst({
+		const endpoint = await this.prismaService.endpoint.findFirst({
 			where: { id: endpointId, userId },
 		});
 		if (!endpoint) {
@@ -41,13 +41,13 @@ export class LogsService {
 		if (query.method) where.method = query.method;
 		if (query.status != null) where.responseStatus = query.status;
 		const [logs, total] = await Promise.all([
-			this.prisma.requestLog.findMany({
+			this.prismaService.requestLog.findMany({
 				where,
 				orderBy: { createdAt: "desc" },
 				take: Math.min(limit, paginationConstants.MAX_LIST_LIMIT),
 				skip: offset,
 			}),
-			this.prisma.requestLog.count({ where }),
+			this.prismaService.requestLog.count({ where }),
 		]);
 		return { logs, total };
 	}
@@ -60,7 +60,7 @@ export class LogsService {
 			endpoint: Endpoint;
 		}
 	> {
-		const log = await this.prisma.requestLog.findUnique({
+		const log = await this.prismaService.requestLog.findUnique({
 			where: { id: logId },
 			include: { endpoint: true },
 		});

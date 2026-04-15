@@ -9,13 +9,15 @@ import { analyticsConstants } from "./analytics.constants";
 
 @Injectable()
 export class AnalyticsService {
-	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+	constructor(
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+	) {}
 
 	async ensureEndpointAccess(
 		endpointId: string,
 		userId: string,
 	): Promise<{ id: string }> {
-		const endpoint = await this.prisma.endpoint.findFirst({
+		const endpoint = await this.prismaService.endpoint.findFirst({
 			where: { id: endpointId, userId },
 		});
 		if (!endpoint) {
@@ -33,15 +35,15 @@ export class AnalyticsService {
 		const last24h = new Date(now.getTime() - analyticsConstants.LAST_24H_MS);
 		const [total, last24hCount, avgLatency, errorCount, successCount] =
 			await Promise.all([
-				this.prisma.requestLog.count({ where: { endpointId } }),
-				this.prisma.requestLog.count({
+				this.prismaService.requestLog.count({ where: { endpointId } }),
+				this.prismaService.requestLog.count({
 					where: { endpointId, createdAt: { gte: last24h } },
 				}),
-				this.prisma.requestLog.aggregate({
+				this.prismaService.requestLog.aggregate({
 					where: { endpointId, durationMs: { not: null } },
 					_avg: { durationMs: true },
 				}),
-				this.prisma.requestLog.count({
+				this.prismaService.requestLog.count({
 					where: {
 						endpointId,
 						OR: [
@@ -54,7 +56,7 @@ export class AnalyticsService {
 						],
 					},
 				}),
-				this.prisma.requestLog.count({
+				this.prismaService.requestLog.count({
 					where: {
 						endpointId,
 						responseStatus: {
@@ -93,7 +95,7 @@ export class AnalyticsService {
 			requests: bigint;
 			avgLatencyMs: bigint | null;
 		};
-		const rows = await this.prisma.$queryRawUnsafe<Row[]>(
+		const rows = await this.prismaService.$queryRawUnsafe<Row[]>(
 			`SELECT * FROM (
 				SELECT date_trunc($1::text, "created_at") AS bucket,
 					COUNT(*)::bigint AS requests,
@@ -125,12 +127,12 @@ export class AnalyticsService {
 	): Promise<AnalyticsBreakdownDto> {
 		await this.ensureEndpointAccess(endpointId, userId);
 		const [byMethod, byStatus] = await Promise.all([
-			this.prisma.requestLog.groupBy({
+			this.prismaService.requestLog.groupBy({
 				by: ["method"],
 				where: { endpointId },
 				_count: { id: true },
 			}),
-			this.prisma.requestLog.groupBy({
+			this.prismaService.requestLog.groupBy({
 				by: ["responseStatus"],
 				where: { endpointId },
 				_count: { id: true },

@@ -7,13 +7,15 @@ import { PrismaService } from "../../core/prisma/prisma.service";
 
 @Injectable()
 export class NotificationChannelsService {
-	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+	constructor(
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+	) {}
 
 	async create(
 		userId: string,
 		dto: CreateChannelDto,
 	): Promise<NotificationChannel> {
-		return this.prisma.notificationChannel.create({
+		return this.prismaService.notificationChannel.create({
 			data: {
 				userId,
 				type: dto.type,
@@ -38,19 +40,19 @@ export class NotificationChannelsService {
 		);
 		const where = { userId, isActive: true };
 		const [items, total] = await Promise.all([
-			this.prisma.notificationChannel.findMany({
+			this.prismaService.notificationChannel.findMany({
 				where,
 				orderBy: { createdAt: "desc" },
 				skip: offset,
 				take: limit,
 			}),
-			this.prisma.notificationChannel.count({ where }),
+			this.prismaService.notificationChannel.count({ where }),
 		]);
 		return { items, total, limit, offset };
 	}
 
 	async findOne(id: string, userId: string): Promise<NotificationChannel> {
-		const ch = await this.prisma.notificationChannel.findUnique({
+		const ch = await this.prismaService.notificationChannel.findUnique({
 			where: { id },
 		});
 		if (!ch || ch.userId !== userId) {
@@ -61,7 +63,7 @@ export class NotificationChannelsService {
 
 	async remove(id: string, userId: string): Promise<{ success: boolean }> {
 		await this.findOne(id, userId);
-		await this.prisma.notificationChannel.update({
+		await this.prismaService.notificationChannel.update({
 			where: { id },
 			data: { isActive: false },
 		});

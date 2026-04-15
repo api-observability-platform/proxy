@@ -18,8 +18,8 @@ export class PasswordResetService {
 	private readonly logger = new Logger(PasswordResetService.name);
 
 	constructor(
-		@Inject(PrismaService) private readonly prisma: PrismaService,
-		@Inject(EmailService) private readonly email: EmailService,
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+		@Inject(EmailService) private readonly emailService: EmailService,
 	) {}
 
 	private generateSixDigitCode(): string {
@@ -33,7 +33,7 @@ export class PasswordResetService {
 
 	async forgotPassword(email: string): Promise<{ message: string }> {
 		const emailLower = email.toLowerCase();
-		const user = await this.prisma.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: { email: emailLower },
 		});
 		if (!user) {
@@ -41,16 +41,18 @@ export class PasswordResetService {
 		}
 		const plainCode = this.generateSixDigitCode();
 		const passwordResetCodeHash = await bcrypt.hash(plainCode, SALT_ROUNDS);
-		await this.prisma.user.update({
+		await this.prismaService.user.update({
 			where: { id: user.id },
 			data: {
 				passwordResetCodeHash,
 				passwordResetExpiresAt: new Date(Date.now() + CODE_TTL_MS),
 			},
 		});
-		await this.email.sendPasswordResetCode(emailLower, plainCode).catch((e) => {
-			this.logger.error(`Failed to send reset email: ${e}`);
-		});
+		await this.emailService
+			.sendPasswordResetCode(emailLower, plainCode)
+			.catch((e) => {
+				this.logger.error(`Failed to send reset email: ${e}`);
+			});
 		return { message: "If an account exists, a reset code was sent." };
 	}
 
@@ -60,7 +62,7 @@ export class PasswordResetService {
 		newPassword: string,
 	): Promise<{ message: string }> {
 		const emailLower = email.toLowerCase();
-		const user = await this.prisma.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: { email: emailLower },
 		});
 		if (
@@ -75,8 +77,8 @@ export class PasswordResetService {
 			throw new UnauthorizedException("Invalid or expired reset code");
 		}
 		const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
-		await this.prisma.$transaction([
-			this.prisma.user.update({
+		await this.prismaService.$transaction([
+			this.prismaService.user.update({
 				where: { id: user.id },
 				data: {
 					passwordHash,
@@ -84,7 +86,7 @@ export class PasswordResetService {
 					passwordResetExpiresAt: null,
 				},
 			}),
-			this.prisma.refreshToken.updateMany({
+			this.prismaService.refreshToken.updateMany({
 				where: { userId: user.id },
 				data: { isRevoked: true },
 			}),

@@ -27,8 +27,8 @@ export class AuthService {
 	private readonly logger = new Logger(AuthService.name);
 
 	constructor(
-		@Inject(PrismaService) private readonly prisma: PrismaService,
-		@Inject(EmailService) private readonly email: EmailService,
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+		@Inject(EmailService) private readonly emailService: EmailService,
 		@Inject(TokenService) private readonly tokenService: TokenService,
 		@Inject(PasswordResetService)
 		private readonly passwordResetService: PasswordResetService,
@@ -45,7 +45,7 @@ export class AuthService {
 
 	async signUp(signUpDto: SignUpDto): Promise<{ message: string }> {
 		const emailLower = signUpDto.email.toLowerCase();
-		const existing = await this.prisma.user.findUnique({
+		const existing = await this.prismaService.user.findUnique({
 			where: { email: emailLower },
 		});
 		if (existing) {
@@ -55,7 +55,7 @@ export class AuthService {
 		const plainCode = this.generateSixDigitCode();
 		const verificationCodeHash = await bcrypt.hash(plainCode, SALT_ROUNDS);
 		const verificationExpiresAt = new Date(Date.now() + CODE_TTL_MS);
-		await this.prisma.user.create({
+		await this.prismaService.user.create({
 			data: {
 				email: emailLower,
 				passwordHash,
@@ -65,9 +65,11 @@ export class AuthService {
 				verificationExpiresAt,
 			},
 		});
-		await this.email.sendVerificationCode(emailLower, plainCode).catch((e) => {
-			this.logger.error(`Failed to send verification email: ${e}`);
-		});
+		await this.emailService
+			.sendVerificationCode(emailLower, plainCode)
+			.catch((e) => {
+				this.logger.error(`Failed to send verification email: ${e}`);
+			});
 		return {
 			message:
 				"Registration successful. Check your email for a verification code.",
@@ -79,7 +81,7 @@ export class AuthService {
 		code: string,
 	): Promise<AuthResponseType & { refreshToken: string }> {
 		const emailLower = email.toLowerCase();
-		const user = await this.prisma.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: { email: emailLower },
 		});
 		if (!user) {
@@ -99,7 +101,7 @@ export class AuthService {
 		if (!ok) {
 			throw new UnauthorizedException("Invalid or expired verification code");
 		}
-		await this.prisma.user.update({
+		await this.prismaService.user.update({
 			where: { id: user.id },
 			data: {
 				isEmailVerified: true,
@@ -112,7 +114,7 @@ export class AuthService {
 
 	async resendVerification(email: string): Promise<{ message: string }> {
 		const emailLower = email.toLowerCase();
-		const user = await this.prisma.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: { email: emailLower },
 		});
 		if (!user) {
@@ -123,23 +125,25 @@ export class AuthService {
 		}
 		const plainCode = this.generateSixDigitCode();
 		const verificationCodeHash = await bcrypt.hash(plainCode, SALT_ROUNDS);
-		await this.prisma.user.update({
+		await this.prismaService.user.update({
 			where: { id: user.id },
 			data: {
 				verificationCodeHash,
 				verificationExpiresAt: new Date(Date.now() + CODE_TTL_MS),
 			},
 		});
-		await this.email.sendVerificationCode(emailLower, plainCode).catch((e) => {
-			this.logger.error(`Failed to send verification email: ${e}`);
-		});
+		await this.emailService
+			.sendVerificationCode(emailLower, plainCode)
+			.catch((e) => {
+				this.logger.error(`Failed to send verification email: ${e}`);
+			});
 		return { message: "If an account exists, a code was sent." };
 	}
 
 	async signIn(
 		signInDto: SignInDto,
 	): Promise<AuthResponseType & { refreshToken: string }> {
-		const user = await this.prisma.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: { email: signInDto.email.toLowerCase() },
 		});
 		if (!user) {
@@ -160,7 +164,7 @@ export class AuthService {
 	async validateUserById(
 		userId: string,
 	): Promise<{ id: string; email: string; name: string | null } | null> {
-		return this.prisma.user.findUnique({
+		return this.prismaService.user.findUnique({
 			where: { id: userId },
 			select: { id: true, email: true, name: true },
 		});

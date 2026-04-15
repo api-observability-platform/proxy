@@ -18,7 +18,7 @@ export class TokenService {
 	private readonly refreshExpiresIn: string;
 
 	constructor(
-		@Inject(PrismaService) private readonly prisma: PrismaService,
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
 		@Inject(JwtService) private readonly jwtService: JwtService,
 		@Inject(ConfigService) readonly configService: ConfigService,
 	) {
@@ -38,7 +38,7 @@ export class TokenService {
 		user: CurrentUserPayload;
 	}> {
 		const tokenHash = hashOpaqueToken(rawToken);
-		const row = await this.prisma.refreshToken.findUnique({
+		const row = await this.prismaService.refreshToken.findUnique({
 			where: { tokenHash },
 			include: {
 				user: {
@@ -73,7 +73,7 @@ export class TokenService {
 		rawToken: string,
 	): Promise<AuthResponseType & { refreshToken: string }> {
 		const { tokenId, user } = await this.validateRefreshToken(rawToken);
-		await this.prisma.refreshToken.update({
+		await this.prismaService.refreshToken.update({
 			where: { id: tokenId },
 			data: { isRevoked: true },
 		});
@@ -83,7 +83,7 @@ export class TokenService {
 	async logout(rawToken: string | undefined): Promise<void> {
 		if (!rawToken) return;
 		const tokenHash = hashOpaqueToken(rawToken);
-		await this.prisma.refreshToken.updateMany({
+		await this.prismaService.refreshToken.updateMany({
 			where: { tokenHash, isRevoked: false },
 			data: { isRevoked: true },
 		});
@@ -92,7 +92,7 @@ export class TokenService {
 	async issueTokensForUserId(
 		userId: string,
 	): Promise<AuthResponseType & { refreshToken: string }> {
-		const user = await this.prisma.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: { id: userId },
 			select: { id: true, email: true, name: true },
 		});
@@ -110,7 +110,7 @@ export class TokenService {
 		const rawRefresh = nanoid(REFRESH_TOKEN_NANOID_LENGTH);
 		const tokenHash = hashOpaqueToken(rawRefresh);
 		const expiresAt = new Date(Date.now() + this.refreshExpiresMs);
-		await this.prisma.refreshToken.create({
+		await this.prismaService.refreshToken.create({
 			data: {
 				userId: user.id,
 				tokenHash,

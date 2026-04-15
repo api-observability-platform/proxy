@@ -25,20 +25,22 @@ const generateSlug = customAlphabet(slugAlphabet, SLUG_LENGTH);
 
 @Injectable()
 export class EndpointsService {
-	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+	constructor(
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+	) {}
 
 	async create(userId: string, dto: CreateEndpointDto): Promise<EndpointDto> {
 		let slug = generateSlug();
 		let attempts = 0;
 		while (attempts < SLUG_MAX_ATTEMPTS) {
-			const existing = await this.prisma.endpoint.findUnique({
+			const existing = await this.prismaService.endpoint.findUnique({
 				where: { slug },
 			});
 			if (!existing) break;
 			slug = generateSlug();
 			attempts++;
 		}
-		const created = await this.prisma.endpoint.create({
+		const created = await this.prismaService.endpoint.create({
 			data: {
 				userId,
 				name: dto.name,
@@ -67,13 +69,13 @@ export class EndpointsService {
 		);
 		const where = { userId };
 		const [items, total] = await Promise.all([
-			this.prisma.endpoint.findMany({
+			this.prismaService.endpoint.findMany({
 				where,
 				orderBy: { createdAt: "desc" },
 				skip: offset,
 				take: limit,
 			}),
-			this.prisma.endpoint.count({ where }),
+			this.prismaService.endpoint.count({ where }),
 		]);
 		return {
 			items: items.map(mapEndpointToDto),
@@ -87,7 +89,7 @@ export class EndpointsService {
 		id: string,
 		user: CurrentUserPayload,
 	): Promise<Endpoint> {
-		const endpoint = await this.prisma.endpoint.findUnique({
+		const endpoint = await this.prismaService.endpoint.findUnique({
 			where: { id },
 		});
 		if (!endpoint) {
@@ -105,7 +107,7 @@ export class EndpointsService {
 	}
 
 	async findBySlug(slug: string): Promise<Endpoint | null> {
-		return this.prisma.endpoint.findUnique({
+		return this.prismaService.endpoint.findUnique({
 			where: { slug, isActive: true },
 		});
 	}
@@ -116,7 +118,7 @@ export class EndpointsService {
 		dto: UpdateEndpointDto,
 	): Promise<EndpointDto> {
 		await this.getOwnedEndpointOrThrow(id, user);
-		const updated = await this.prisma.endpoint.update({
+		const updated = await this.prismaService.endpoint.update({
 			where: { id },
 			data: {
 				...(dto.name !== undefined && { name: dto.name }),
@@ -144,7 +146,7 @@ export class EndpointsService {
 		user: CurrentUserPayload,
 	): Promise<{ success: boolean }> {
 		await this.getOwnedEndpointOrThrow(id, user);
-		await this.prisma.endpoint.delete({
+		await this.prismaService.endpoint.delete({
 			where: { id },
 		});
 		return { success: true };

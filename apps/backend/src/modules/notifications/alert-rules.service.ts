@@ -16,18 +16,20 @@ type AlertRuleWithChannel = Prisma.AlertRuleGetPayload<{
 
 @Injectable()
 export class AlertRulesService {
-	constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+	constructor(
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+	) {}
 
 	async create(userId: string, dto: CreateAlertRuleDto): Promise<AlertRule> {
-		const endpoint = await this.prisma.endpoint.findFirst({
+		const endpoint = await this.prismaService.endpoint.findFirst({
 			where: { id: dto.endpointId, userId },
 		});
 		if (!endpoint) throw new ForbiddenException("Access denied");
-		const channel = await this.prisma.notificationChannel.findFirst({
+		const channel = await this.prismaService.notificationChannel.findFirst({
 			where: { id: dto.channelId, userId },
 		});
 		if (!channel) throw new ForbiddenException("Channel not found");
-		return this.prisma.alertRule.create({
+		return this.prismaService.alertRule.create({
 			data: {
 				endpointId: dto.endpointId,
 				userId,
@@ -47,7 +49,7 @@ export class AlertRulesService {
 		limit: number;
 		offset: number;
 	}> {
-		const endpoint = await this.prisma.endpoint.findFirst({
+		const endpoint = await this.prismaService.endpoint.findFirst({
 			where: { id: endpointId, userId },
 		});
 		if (!endpoint) throw new ForbiddenException("Access denied");
@@ -58,26 +60,26 @@ export class AlertRulesService {
 		);
 		const where = { endpointId };
 		const [items, total] = await Promise.all([
-			this.prisma.alertRule.findMany({
+			this.prismaService.alertRule.findMany({
 				where,
 				include: { channel: true },
 				orderBy: { createdAt: "desc" },
 				skip: offset,
 				take: limit,
 			}),
-			this.prisma.alertRule.count({ where }),
+			this.prismaService.alertRule.count({ where }),
 		]);
 		return { items, total, limit, offset };
 	}
 
 	async remove(id: string, userId: string): Promise<{ success: boolean }> {
-		const rule = await this.prisma.alertRule.findUnique({
+		const rule = await this.prismaService.alertRule.findUnique({
 			where: { id },
 		});
 		if (!rule || rule.userId !== userId) {
 			throw new NotFoundException("Alert rule not found");
 		}
-		await this.prisma.alertRule.delete({ where: { id } });
+		await this.prismaService.alertRule.delete({ where: { id } });
 		return { success: true };
 	}
 }

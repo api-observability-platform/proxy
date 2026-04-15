@@ -30,11 +30,11 @@ export class NotificationsService {
 	private readonly dashboardBaseUrl: string;
 
 	constructor(
-		@Inject(PrismaService) private readonly prisma: PrismaService,
-		@Inject(TelegramService) private readonly telegram: TelegramService,
-		@Inject(SlackService) private readonly slack: SlackService,
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+		@Inject(TelegramService) private readonly telegramService: TelegramService,
+		@Inject(SlackService) private readonly slackService: SlackService,
 		@Inject(AlertThrottleService)
-		private readonly throttle: AlertThrottleService,
+		private readonly alertThrottleService: AlertThrottleService,
 		@Inject(ConfigService) readonly configService: ConfigService,
 		@Inject(EmailService) private readonly emailService: EmailService,
 	) {
@@ -49,18 +49,21 @@ export class NotificationsService {
 		endpointId: string,
 		log: Pick<RequestLog, "responseStatus" | "durationMs" | "method" | "path">,
 	): Promise<void> {
-		const endpoint = await this.prisma.endpoint.findUnique({
+		const endpoint = await this.prismaService.endpoint.findUnique({
 			where: { id: endpointId },
 			select: { name: true },
 		});
 		const endpointName = endpoint?.name ?? "Endpoint";
-		const rules = await this.prisma.alertRule.findMany({
+		const rules = await this.prismaService.alertRule.findMany({
 			where: { endpointId, isActive: true },
 			include: { channel: true },
 		});
 		for (const rule of rules) {
 			if (!rule.channel.isActive) continue;
-			if (await this.throttle.isThrottled(endpointId, rule.channelId)) continue;
+			if (
+				await this.alertThrottleService.isThrottled(endpointId, rule.channelId)
+			)
+				continue;
 
 			const matches = this.evaluateCondition(rule.condition, log);
 			if (!matches) continue;
@@ -79,7 +82,7 @@ export class NotificationsService {
 					`Notification failed: ${err instanceof Error ? err.message : err}`,
 				),
 			);
-			await this.throttle.markSent(endpointId, rule.channelId);
+			await this.alertThrottleService.markSent(endpointId, rule.channelId);
 		}
 	}
 
@@ -116,7 +119,7 @@ export class NotificationsService {
 				);
 			}
 			const text = this.formatTelegramHtml(ctx);
-			await this.telegram.send({ botToken, chatId }, text, {
+			await this.telegramService.send({ botToken, chatId }, text, {
 				inline_keyboard: [
 					[
 						{
@@ -135,7 +138,7 @@ export class NotificationsService {
 				);
 			}
 			const payload = this.buildSlackBlockKit(ctx);
-			await this.slack.sendBlockKit({ webhookUrl }, payload);
+			await this.slackService.sendBlockKit({ webhookUrl }, payload);
 		} else if (channel.type === "EMAIL") {
 			const emails = parseEmailRecipients(config);
 			if (emails.length === 0) {

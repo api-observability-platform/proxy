@@ -24,7 +24,7 @@ export class HttpProxyHandler implements ProtocolHandler {
 	constructor(
 		@Inject(ProxyService) private readonly proxyService: ProxyService,
 		@Inject(TransformPipelineService)
-		private readonly transforms: TransformPipelineService,
+		private readonly transformPipelineService: TransformPipelineService,
 	) {}
 
 	canHandle(_req: Request, endpoint: Endpoint): boolean {
@@ -33,8 +33,8 @@ export class HttpProxyHandler implements ProtocolHandler {
 
 	async handle(ctx: ProxyContext): Promise<void> {
 		const method = ctx.req.method ?? "GET";
-		const flat = this.transforms.flattenHeaders(ctx.headers);
-		const applied = this.transforms.applyRequestPhase(
+		const flat = this.transformPipelineService.flattenHeaders(ctx.headers);
+		const applied = this.transformPipelineService.applyRequestPhase(
 			ctx.endpoint,
 			ctx.path,
 			flat,
@@ -102,10 +102,11 @@ export class HttpProxyHandler implements ProtocolHandler {
 			upstreamRes.headers.forEach((v, k) => {
 				headerObj[k] = v;
 			});
-			const adjustedHeaders = this.transforms.applyStreamingResponseHeaders(
-				ctx.endpoint,
-				headerObj,
-			);
+			const adjustedHeaders =
+				this.transformPipelineService.applyStreamingResponseHeaders(
+					ctx.endpoint,
+					headerObj,
+				);
 			const hopByHop = new Set([
 				"transfer-encoding",
 				"content-encoding",
@@ -264,11 +265,14 @@ export class HttpProxyHandler implements ProtocolHandler {
 			});
 			const durationMs = Date.now() - ctx.startTime;
 			const responseBuffer = Buffer.from(await upstreamRes.arrayBuffer());
-			const afterTransform = this.transforms.applyResponsePhase(ctx.endpoint, {
-				status: upstreamRes.status,
-				headers: this.collectHeaders(upstreamRes),
-				body: responseBuffer,
-			});
+			const afterTransform = this.transformPipelineService.applyResponsePhase(
+				ctx.endpoint,
+				{
+					status: upstreamRes.status,
+					headers: this.collectHeaders(upstreamRes),
+					body: responseBuffer,
+				},
+			);
 			ctx.res.status(afterTransform.status);
 			const responseHeadersObj = this.applyUpstreamHeadersToResponse(
 				afterTransform.headers,

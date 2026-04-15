@@ -10,10 +10,10 @@ export class ReportsService {
 	private readonly logger = new Logger(ReportsService.name);
 
 	constructor(
-		@Inject(PrismaService) private readonly prisma: PrismaService,
-		@Inject(SlackService) private readonly slack: SlackService,
-		@Inject(TelegramService) private readonly telegram: TelegramService,
-		@Inject(EmailService) private readonly email: EmailService,
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
+		@Inject(SlackService) private readonly slackService: SlackService,
+		@Inject(TelegramService) private readonly telegramService: TelegramService,
+		@Inject(EmailService) private readonly emailService: EmailService,
 	) {}
 
 	@Cron(CronExpression.EVERY_DAY_AT_9AM)
@@ -27,7 +27,7 @@ export class ReportsService {
 	}
 
 	private async runForFrequency(frequency: "DAILY" | "WEEKLY"): Promise<void> {
-		const schedules = await this.prisma.reportSchedule.findMany({
+		const schedules = await this.prismaService.reportSchedule.findMany({
 			where: { isActive: true, frequency },
 			include: { channel: true, user: true },
 		});
@@ -50,17 +50,17 @@ export class ReportsService {
 	}
 
 	private async buildDigestText(userId: string, since: Date): Promise<string> {
-		const endpoints = await this.prisma.endpoint.findMany({
+		const endpoints = await this.prismaService.endpoint.findMany({
 			where: { userId },
 			select: { id: true, name: true },
 		});
 		const lines: string[] = [];
 		lines.push(`Digest since ${since.toISOString()}`);
 		for (const ep of endpoints) {
-			const count = await this.prisma.requestLog.count({
+			const count = await this.prismaService.requestLog.count({
 				where: { endpointId: ep.id, createdAt: { gte: since } },
 			});
-			const errors = await this.prisma.requestLog.count({
+			const errors = await this.prismaService.requestLog.count({
 				where: {
 					endpointId: ep.id,
 					createdAt: { gte: since },
@@ -80,13 +80,13 @@ export class ReportsService {
 		if (channel.type === "SLACK") {
 			const webhookUrl =
 				typeof config.webhookUrl === "string" ? config.webhookUrl : "";
-			if (webhookUrl) await this.slack.send({ webhookUrl }, text);
+			if (webhookUrl) await this.slackService.send({ webhookUrl }, text);
 		} else if (channel.type === "TELEGRAM") {
 			const botToken =
 				typeof config.botToken === "string" ? config.botToken : "";
 			const chatId = typeof config.chatId === "string" ? config.chatId : "";
 			if (botToken && chatId) {
-				await this.telegram.send({ botToken, chatId }, text);
+				await this.telegramService.send({ botToken, chatId }, text);
 			}
 		} else if (channel.type === "EMAIL") {
 			const emails = Array.isArray(config.emails)
@@ -95,7 +95,7 @@ export class ReportsService {
 					? [config.email]
 					: [];
 			for (const to of emails) {
-				await this.email.sendAlertEmail(
+				await this.emailService.sendAlertEmail(
 					to,
 					"Proxy digest",
 					text,

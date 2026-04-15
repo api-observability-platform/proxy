@@ -13,11 +13,11 @@ export class ProxyService {
 	private readonly logger = new Logger(ProxyService.name);
 
 	constructor(
-		@Inject(PrismaService) private readonly prisma: PrismaService,
+		@Inject(PrismaService) private readonly prismaService: PrismaService,
 		@Inject(EndpointsService)
 		private readonly endpointsService: EndpointsService,
 		@Inject(NotificationsService)
-		private readonly notifications: NotificationsService,
+		private readonly notificationsService: NotificationsService,
 	) {}
 
 	async resolveEndpoint(slug: string): Promise<Endpoint | null> {
@@ -35,8 +35,8 @@ export class ProxyService {
 
 	async persistRequestLog(data: ProxyLogPayload): Promise<string> {
 		const payload = this.buildLogCreateData(data);
-		const row = await this.prisma.requestLog.create({ data: payload });
-		await this.notifications
+		const row = await this.prismaService.requestLog.create({ data: payload });
+		await this.notificationsService
 			.evaluateAndNotify(data.endpointId, {
 				responseStatus: data.responseStatus,
 				durationMs: data.durationMs,
