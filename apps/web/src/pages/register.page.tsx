@@ -35,10 +35,10 @@ export const RegisterPage = () => {
 		setError("");
 		setLoading(true);
 		try {
-			await authApi.register({
+			await authApi.signUp({
 				email,
 				password,
-				name: name || undefined,
+				name: name.trim() === "" ? null : name,
 			});
 			navigate(`/verify-email?${new URLSearchParams({ email }).toString()}`);
 		} catch (err) {

@@ -30,7 +30,7 @@ export const LoginPage = () => {
 		setError("");
 		setLoading(true);
 		try {
-			const res = await authApi.login({ email, password });
+			const res = await authApi.signIn({ email, password });
 			setSession(res.accessToken, res.user);
 			navigate("/");
 		} catch (err) {

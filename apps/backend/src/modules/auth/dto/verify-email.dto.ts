@@ -1,7 +1,8 @@
+import type { VerifyEmailType } from "@proxy-server/shared";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsString, Length, Matches } from "class-validator";
 
-export class VerifyEmailDto {
+export class VerifyEmailDto implements VerifyEmailType {
 	@ApiProperty({ example: "user@example.com" })
 	@IsEmail()
 	email!: string;

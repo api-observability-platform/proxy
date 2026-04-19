@@ -1,18 +1,26 @@
-import type { UserDto } from "@proxy-server/shared";
+import type {
+	ForgotPasswordType,
+	ResendVerificationType,
+	ResetPasswordType,
+	SignInType,
+	SignUpType,
+	UserDto,
+	VerifyEmailType,
+} from "@proxy-server/shared";
 import { toApiUrl } from "./helpers/api-url.helper";
 import { type HttpClient, httpClient } from "./helpers/http-client";
 
 export class AuthApi {
 	constructor(private readonly http: HttpClient) {}
 
-	register(data: { email: string; password: string; name?: string }) {
+	signUp(data: SignUpType) {
 		return this.http.request<{ message: string }>("/auth/sign-up", {
 			method: "POST",
 			body: JSON.stringify(data),
 		});
 	}
 
-	login(data: { email: string; password: string }) {
+	signIn(data: SignInType) {
 		return this.http.request<{ accessToken: string; user: UserDto }>(
 			"/auth/sign-in",
 			{
@@ -22,7 +30,7 @@ export class AuthApi {
 		);
 	}
 
-	verifyEmail(data: { email: string; code: string }) {
+	verifyEmail(data: VerifyEmailType) {
 		return this.http.request<{ accessToken: string; user: UserDto }>(
 			"/auth/verify-email",
 			{
@@ -32,21 +40,21 @@ export class AuthApi {
 		);
 	}
 
-	resendVerification(data: { email: string }) {
+	resendVerification(data: ResendVerificationType) {
 		return this.http.request<{ message: string }>("/auth/resend-verification", {
 			method: "POST",
 			body: JSON.stringify(data),
 		});
 	}
 
-	forgotPassword(data: { email: string }) {
+	forgotPassword(data: ForgotPasswordType) {
 		return this.http.request<{ message: string }>("/auth/forgot-password", {
 			method: "POST",
 			body: JSON.stringify(data),
 		});
 	}
 
-	resetPassword(data: { email: string; code: string; newPassword: string }) {
+	resetPassword(data: ResetPasswordType) {
 		return this.http.request<{ message: string }>("/auth/reset-password", {
 			method: "POST",
 			body: JSON.stringify(data),

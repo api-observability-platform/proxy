@@ -155,7 +155,7 @@ export class AuthController {
 		description: swaggerConst.routes.signUp.responses.internalServerError,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async signUp(@Body() signUpDto: SignUpDto): Promise<{ message: string }> {
+	public signUp(@Body() signUpDto: SignUpDto): Promise<{ message: string }> {
 		return this.authService.signUp(signUpDto);
 	}
 
@@ -186,7 +186,7 @@ export class AuthController {
 		description: swaggerConst.routes.verifyEmail.responses.unauthorized,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async verifyEmail(
+	public async verifyEmail(
 		@Body() dto: VerifyEmailDto,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<AuthResponseType> {
@@ -222,7 +222,7 @@ export class AuthController {
 			swaggerConst.routes.resendVerification.responses.tooManyRequests,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async resendVerification(
+	public resendVerification(
 		@Body() dto: ResendVerificationDto,
 	): Promise<{ message: string }> {
 		return this.authService.resendVerification(dto.email);
@@ -267,7 +267,7 @@ export class AuthController {
 		description: swaggerConst.routes.signIn.responses.internalServerError,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async signIn(
+	public async signIn(
 		@Body() signInDto: SignInDto,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<AuthResponseType> {
@@ -302,7 +302,7 @@ export class AuthController {
 		description: swaggerConst.routes.forgotPassword.responses.tooManyRequests,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async forgotPassword(
+	public forgotPassword(
 		@Body() dto: ForgotPasswordDto,
 	): Promise<{ message: string }> {
 		return this.authService.forgotPassword(dto.email);
@@ -339,7 +339,7 @@ export class AuthController {
 		description: swaggerConst.routes.resetPassword.responses.tooManyRequests,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async resetPassword(
+	public resetPassword(
 		@Body() dto: ResetPasswordDto,
 	): Promise<{ message: string }> {
 		return this.authService.resetPassword(dto.email, dto.code, dto.newPassword);
@@ -362,7 +362,7 @@ export class AuthController {
 		description: swaggerConst.routes.refresh.responses.unauthorized,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async refresh(
+	public async refresh(
 		@Req() req: Request & RequestWithRefreshAuthType,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<AuthResponseType> {
@@ -389,7 +389,7 @@ export class AuthController {
 		description: swaggerConst.routes.logout.responses.unauthorized,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	async logout(
+	public async logout(
 		@Req() req: Request,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<{ success: boolean }> {
@@ -413,7 +413,9 @@ export class AuthController {
 		description: swaggerConst.routes.me.responses.unauthorized,
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	me(@CurrentUser() user: CurrentUserPayload): Promise<CurrentUserPayload> {
-		return this.authService.getMe(user.id);
+	public me(
+		@CurrentUser() user: CurrentUserPayload,
+	): Promise<CurrentUserPayload> {
+		return this.authService.me(user.id);
 	}
 }

@@ -32,9 +32,8 @@ export class AuthService {
 	) {}
 
 	async signUp(signUpDto: SignUpDto): Promise<{ message: string }> {
-		const emailLower = signUpDto.email.toLowerCase();
 		const existing = await this.prismaService.user.findUnique({
-			where: { email: emailLower },
+			where: { email: signUpDto.email },
 		});
 		if (existing) {
 			throw new ConflictException("User with this email already exists");
@@ -51,24 +50,24 @@ export class AuthService {
 			plainCode,
 			authCryptoConst.saltRounds,
 		);
+
 		const verificationExpiresAt = new Date(
 			Date.now() + authCryptoConst.codeTtlMs,
 		);
+
 		await this.prismaService.user.create({
 			data: {
-				email: emailLower,
+				email: signUpDto.email,
 				passwordHash,
-				name: signUpDto.name ?? null,
+				name: signUpDto.name || null,
 				isEmailVerified: false,
 				verificationCodeHash,
 				verificationExpiresAt,
 			},
 		});
-		await this.emailService
-			.sendVerificationCode(emailLower, plainCode)
-			.catch((e) => {
-				this.logger.error(`Failed to send verification email: ${e}`);
-			});
+
+		await this.emailService.sendVerificationCode(signUpDto.email, plainCode);
+
 		return {
 			message:
 				"Registration successful. Check your email for a verification code.",
@@ -172,7 +171,7 @@ export class AuthService {
 		});
 	}
 
-	async getMe(userId: string): Promise<CurrentUserPayload> {
+	async me(userId: string): Promise<CurrentUserPayload> {
 		const user = await this.validateUserById(userId);
 		if (!user) {
 			throw new UnauthorizedException();
