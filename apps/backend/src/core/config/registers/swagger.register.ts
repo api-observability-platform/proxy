@@ -1,9 +1,9 @@
 import type { SwaggerType } from "../types/swagger.type";
 import { registerAs } from "@nestjs/config";
-import { ConfigKeyEnum } from "../../../common/enums/config.enum";
+import { ConfigKey } from "../../../common/constants/config-key.constant";
 
 export const swaggerRegister = registerAs(
-	ConfigKeyEnum.SWAGGER,
+	ConfigKey.Swagger,
 	(): SwaggerType => {
 		const path = process.env.SWAGGER_PATH || "";
 		const name = process.env.SWAGGER_NAME || "";

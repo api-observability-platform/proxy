@@ -14,20 +14,11 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { HttpAdapterHost } from "@nestjs/core";
-import { ConfigKeyEnum } from "../enums/config.enum.js";
-import { EnvironmentsEnum } from "../enums/environments.enum.js";
-
-const PRISMA_ERROR_MAP: Record<string, HttpStatus> = {
-	P2000: HttpStatus.BAD_REQUEST,
-	P2001: HttpStatus.NOT_FOUND,
-	P2002: HttpStatus.CONFLICT,
-	P2003: HttpStatus.BAD_REQUEST,
-	P2014: HttpStatus.BAD_REQUEST,
-	P2025: HttpStatus.NOT_FOUND,
-} as const;
-
-const INTERNAL_ERROR_MESSAGE = "Internal server error";
-const INTERNAL_ERROR_TYPE = "InternalServerErrorException";
+import { ConfigKey } from "../constants/config-key.constant.js";
+import { Environments } from "../constants/environments.constant.js";
+import { InternalErrorMessage } from "./constants/internal-error-message.constant.js";
+import { InternalErrorType } from "./constants/internal-error-type.constant.js";
+import { PrismaErrorMap } from "./constants/prisma-error-map.constant.js";
 
 @Catch()
 export class CatchEverythingFilter implements ExceptionFilter {
@@ -39,10 +30,10 @@ export class CatchEverythingFilter implements ExceptionFilter {
 		@Inject(ConfigService) readonly configService: ConfigService,
 	) {
 		const { nodeEnv } = configService.getOrThrow<EnvironmentType>(
-			ConfigKeyEnum.ENVIRONMENT,
+			ConfigKey.Environment,
 		);
 
-		this.isProduction = nodeEnv === EnvironmentsEnum.PRODUCTION;
+		this.isProduction = nodeEnv === Environments.Production;
 	}
 
 	catch(exception: unknown, host: ArgumentsHost): void {
@@ -111,7 +102,7 @@ export class CatchEverythingFilter implements ExceptionFilter {
 			error: typeof error === "string" ? error : "Error",
 			message: Array.isArray(message)
 				? message
-				: String(message ?? INTERNAL_ERROR_MESSAGE),
+				: String(message ?? InternalErrorMessage),
 			statusCode: response?.statusCode ?? statusCode,
 		};
 	}
@@ -124,7 +115,7 @@ export class CatchEverythingFilter implements ExceptionFilter {
 		message: string | string[];
 	} {
 		const statusCode =
-			PRISMA_ERROR_MAP[error.code] ?? HttpStatus.INTERNAL_SERVER_ERROR;
+			PrismaErrorMap[error.code] ?? HttpStatus.INTERNAL_SERVER_ERROR;
 		const message = this.getPrismaErrorMessage(error);
 		return {
 			error: "PrismaClientKnownRequestError",
@@ -154,9 +145,9 @@ export class CatchEverythingFilter implements ExceptionFilter {
 		message: string | string[];
 	} {
 		return {
-			error: INTERNAL_ERROR_TYPE,
+			error: InternalErrorType,
 			message: this.isProduction
-				? INTERNAL_ERROR_MESSAGE
+				? InternalErrorMessage
 				: exception instanceof Error
 					? exception.message
 					: String(exception),

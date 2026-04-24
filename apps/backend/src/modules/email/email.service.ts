@@ -3,7 +3,7 @@ import type { EmailType } from "../../core/config/types/email.type";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as nodemailer from "nodemailer";
-import { ConfigKeyEnum } from "../../common/enums/config.enum";
+import { ConfigKey } from "../../common/constants/config-key.constant";
 
 @Injectable()
 export class EmailService {
@@ -14,7 +14,7 @@ export class EmailService {
 
 	constructor(@Inject(ConfigService) readonly configService: ConfigService) {
 		const { host, port, user, pass, from, logOtpOnSmtpFailure } =
-			configService.getOrThrow<EmailType>(ConfigKeyEnum.EMAIL);
+			configService.getOrThrow<EmailType>(ConfigKey.Email);
 
 		this.logOtpOnSmtpFailure = logOtpOnSmtpFailure;
 		this.from = from;

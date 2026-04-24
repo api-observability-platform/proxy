@@ -1,8 +1,8 @@
 import type { EmailType } from "../types/email.type";
 import { registerAs } from "@nestjs/config";
-import { ConfigKeyEnum } from "../../../common/enums/config.enum";
+import { ConfigKey } from "../../../common/constants/config-key.constant";
 
-export const emailRegister = registerAs(ConfigKeyEnum.EMAIL, (): EmailType => {
+export const emailRegister = registerAs(ConfigKey.Email, (): EmailType => {
 	const host = process.env.SMTP_HOST || "";
 	const port = Number(process.env.SMTP_PORT || "");
 	const user = process.env.SMTP_USER || "";

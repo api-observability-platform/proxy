@@ -2,7 +2,7 @@ import type { Observable } from "rxjs";
 import { type ExecutionContext, Inject, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
-import { IS_PUBLIC_KEY } from "../../../common/constants/is-public-key.constant";
+import { IsPublicKey } from "../../../common/constants/is-public-key.constant";
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
@@ -13,7 +13,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
 	override canActivate(
 		context: ExecutionContext,
 	): boolean | Promise<boolean> | Observable<boolean> {
-		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+		const isPublic = this.reflector.getAllAndOverride<boolean>(IsPublicKey, [
 			context.getHandler(),
 			context.getClass(),
 		]);

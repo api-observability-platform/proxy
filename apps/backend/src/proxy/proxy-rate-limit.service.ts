@@ -4,7 +4,7 @@ import type { RedisType } from "../core/config/types/redis.type.js";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
-import { ConfigKeyEnum } from "../common/enums/config.enum.js";
+import { ConfigKey } from "../common/constants/config-key.constant.js";
 
 const RATE_KEY_PREFIX = "ratelimit:";
 
@@ -16,7 +16,7 @@ export class ProxyRateLimitService {
 	private useMemoryOnly = false;
 
 	constructor(@Inject(ConfigService) readonly configService: ConfigService) {
-		const { url } = configService.getOrThrow<RedisType>(ConfigKeyEnum.REDIS);
+		const { url } = configService.getOrThrow<RedisType>(ConfigKey.Redis);
 
 		if (url.trim()) {
 			this.redis = new Redis(url, {

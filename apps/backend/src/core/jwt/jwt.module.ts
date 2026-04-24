@@ -2,7 +2,7 @@ import type { JwtType } from "../config/types/jwt.type";
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtModule as CoreJwtModule } from "@nestjs/jwt";
-import { ConfigKeyEnum } from "../../common/enums/config.enum";
+import { ConfigKey } from "../../common/constants/config-key.constant";
 import { ConfigModule } from "../config/config.module";
 
 @Module({
@@ -12,7 +12,7 @@ import { ConfigModule } from "../config/config.module";
 			imports: [ConfigModule],
 			useFactory: (configService: ConfigService) => {
 				const { accessExpiresIn, secret } = configService.getOrThrow<JwtType>(
-					ConfigKeyEnum.JWT,
+					ConfigKey.Jwt,
 				);
 
 				return {

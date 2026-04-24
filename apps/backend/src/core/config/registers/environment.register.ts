@@ -1,9 +1,9 @@
 import type { EnvironmentType } from "../types/environment.type";
 import { registerAs } from "@nestjs/config";
-import { ConfigKeyEnum } from "../../../common/enums/config.enum";
+import { ConfigKey } from "../../../common/constants/config-key.constant";
 
 export const environmentRegister = registerAs(
-	ConfigKeyEnum.ENVIRONMENT,
+	ConfigKey.Environment,
 	(): EnvironmentType => {
 		const nodeEnv = process.env.NODE_ENV || "";
 

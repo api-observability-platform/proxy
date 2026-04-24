@@ -6,7 +6,7 @@ import {
 	ThrottlerModule as CoreThrottlerModule,
 	ThrottlerGuard,
 } from "@nestjs/throttler";
-import { ConfigKeyEnum } from "../../common/enums/config.enum";
+import { ConfigKey } from "../../common/constants/config-key.constant";
 import { ConfigModule } from "../config/config.module";
 
 @Module({
@@ -16,7 +16,7 @@ import { ConfigModule } from "../config/config.module";
 			imports: [ConfigModule],
 			useFactory: (configService: ConfigService) => {
 				const { ttl, limit } = configService.getOrThrow<RateLimitType>(
-					ConfigKeyEnum.RATE_LIMIT,
+					ConfigKey.RateLimit,
 				);
 
 				return [

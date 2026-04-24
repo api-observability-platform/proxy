@@ -35,10 +35,10 @@ import {
 	getSchemaPath,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
+import { ConfigKey } from "../../common/constants/config-key.constant";
+import { Environments } from "../../common/constants/environments.constant";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Public } from "../../common/decorators/public.decorator";
-import { ConfigKeyEnum } from "../../common/enums/config.enum";
-import { EnvironmentsEnum } from "../../common/enums/environments.enum";
 import { AuthResponseSchema } from "../../common/swagger/schemas/auth-response.schema";
 import { AuthUserSchema } from "../../common/swagger/schemas/auth-user.schema";
 import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
@@ -75,12 +75,12 @@ export class AuthController {
 		@Inject(ConfigService) readonly configService: ConfigService,
 	) {
 		const { nodeEnv } = configService.getOrThrow<EnvironmentType>(
-			ConfigKeyEnum.ENVIRONMENT,
+			ConfigKey.Environment,
 		);
-		this.isProduction = nodeEnv === EnvironmentsEnum.PRODUCTION;
+		this.isProduction = nodeEnv === Environments.Production;
 
 		const { refreshExpiresIn } = configService.getOrThrow<JwtType>(
-			ConfigKeyEnum.JWT,
+			ConfigKey.Jwt,
 		);
 
 		this.refreshExpiresIn = refreshExpiresIn;

@@ -7,7 +7,7 @@ import {
 	Injectable,
 	NotFoundException,
 } from "@nestjs/common";
-import { paginationConstants } from "../../common/constants/pagination.constants";
+import { Pagination } from "../../common/constants/pagination.constants";
 import { PrismaService } from "../../core/prisma/prisma.service";
 
 type AlertRuleWithChannel = Prisma.AlertRuleGetPayload<{
@@ -53,10 +53,10 @@ export class AlertRulesService {
 			where: { id: endpointId, userId },
 		});
 		if (!endpoint) throw new ForbiddenException("Access denied");
-		const offset = query.offset ?? paginationConstants.DEFAULT_OFFSET;
+		const offset = query.offset ?? Pagination.DefaultOffset;
 		const limit = Math.min(
-			query.limit ?? paginationConstants.DEFAULT_LIST_LIMIT,
-			paginationConstants.MAX_LIST_LIMIT,
+			query.limit ?? Pagination.DefaultListLimit,
+			Pagination.MaxListLimit,
 		);
 		const where = { endpointId };
 		const [items, total] = await Promise.all([

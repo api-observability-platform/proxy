@@ -1,5 +1,5 @@
-export const paginationConstants = {
-	DEFAULT_LIST_LIMIT: 50,
-	MAX_LIST_LIMIT: 100,
-	DEFAULT_OFFSET: 0,
+export const Pagination = {
+	DefaultListLimit: 50,
+	MaxListLimit: 100,
+	DefaultOffset: 0,
 } as const;

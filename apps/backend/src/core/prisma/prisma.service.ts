@@ -8,7 +8,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/generated/client";
-import { ConfigKeyEnum } from "../../common/enums/config.enum";
+import { ConfigKey } from "../../common/constants/config-key.constant";
 
 @Injectable()
 export class PrismaService
@@ -16,7 +16,7 @@ export class PrismaService
 	implements OnModuleInit, OnModuleDestroy
 {
 	constructor(@Inject(ConfigService) readonly configService: ConfigService) {
-		const { url } = configService.getOrThrow<PrismaType>(ConfigKeyEnum.PRISMA);
+		const { url } = configService.getOrThrow<PrismaType>(ConfigKey.Prisma);
 
 		const adapter: PrismaPg = new PrismaPg({
 			connectionString: url,

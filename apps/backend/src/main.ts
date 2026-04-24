@@ -10,8 +10,8 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
-import { ConfigKeyEnum } from "./common/enums/config.enum";
-import { EnvironmentsEnum } from "./common/enums/environments.enum";
+import { ConfigKey } from "./common/constants/config-key.constant";
+import { Environments } from "./common/constants/environments.constant";
 import { CatchEverythingFilter } from "./common/filters/catch-everything.filter";
 import { LoggingInterceptor } from "./common/interceptors/logger.interceptor";
 import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
@@ -29,7 +29,7 @@ const setupSwagger = (
 	appPort: number,
 ): string => {
 	const { siteTitle, name, descr, path } =
-		configService.getOrThrow<SwaggerType>(ConfigKeyEnum.SWAGGER);
+		configService.getOrThrow<SwaggerType>(ConfigKey.Swagger);
 
 	const documentBuilder = new DocumentBuilder()
 		.setTitle(name)
@@ -37,8 +37,8 @@ const setupSwagger = (
 		.setVersion("1.0")
 		.setContact("Proxy Server", "", "")
 		.setLicense("MIT", "")
-		.addServer(`http://localhost:${appPort}`, EnvironmentsEnum.DEVELOPMENT)
-		.addServer(`http://lvh.me:${appPort}`, EnvironmentsEnum.PRODUCTION)
+		.addServer(`http://localhost:${appPort}`, Environments.Development)
+		.addServer(`http://lvh.me:${appPort}`, Environments.Production)
 		.addBearerAuth(
 			{
 				bearerFormat: "JWT",
@@ -94,14 +94,12 @@ const setupSwagger = (
 
 	const configService = app.get(ConfigService);
 
-	const { port, corsOrigin } = configService.getOrThrow<AppType>(
-		ConfigKeyEnum.APP,
-	);
+	const { port, corsOrigin } = configService.getOrThrow<AppType>(ConfigKey.App);
 	const { nodeEnv } = configService.getOrThrow<EnvironmentType>(
-		ConfigKeyEnum.ENVIRONMENT,
+		ConfigKey.Environment,
 	);
 
-	const isProduction = nodeEnv === EnvironmentsEnum.PRODUCTION;
+	const isProduction = nodeEnv === Environments.Production;
 
 	app.enableVersioning({
 		defaultVersion: "1",

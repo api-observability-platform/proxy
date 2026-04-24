@@ -14,7 +14,7 @@ import {
 } from "@nestjs/common";
 import { type Endpoint, Prisma } from "@prisma/generated/client";
 import { customAlphabet } from "nanoid";
-import { paginationConstants } from "../../common/constants/pagination.constants";
+import { Pagination } from "../../common/constants/pagination.constants";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { mapEndpointToDto } from "./endpoint.mapper";
 
@@ -62,10 +62,10 @@ export class EndpointsService {
 		userId: string,
 		query: ListEndpointsQueryDto,
 	): Promise<EndpointListResponseDto> {
-		const offset = query.offset ?? paginationConstants.DEFAULT_OFFSET;
+		const offset = query.offset ?? Pagination.DefaultOffset;
 		const limit = Math.min(
-			query.limit ?? paginationConstants.DEFAULT_LIST_LIMIT,
-			paginationConstants.MAX_LIST_LIMIT,
+			query.limit ?? Pagination.DefaultListLimit,
+			Pagination.MaxListLimit,
 		);
 		const where = { userId };
 		const [items, total] = await Promise.all([

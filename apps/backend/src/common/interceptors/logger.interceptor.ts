@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import type { EnvironmentType } from "../../core/config/types/environment.type.js";
+import type { LoggerExpressionType } from "./types/logger-expression.type.js";
 import {
 	type CallHandler,
 	type ExecutionContext,
@@ -11,11 +12,9 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { type Observable, tap } from "rxjs";
-import { httpConstants } from "../constants/http.constants.js";
-import { ConfigKeyEnum } from "../enums/config.enum.js";
-import { EnvironmentsEnum } from "../enums/environments.enum.js";
-
-type LoggerExpressionType = "incoming" | "error" | "success";
+import { ConfigKey } from "../constants/config-key.constant.js";
+import { Environments } from "../constants/environments.constant.js";
+import { Http } from "../constants/http.constants.js";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -24,10 +23,10 @@ export class LoggingInterceptor implements NestInterceptor {
 
 	constructor(@Inject(ConfigService) readonly configService: ConfigService) {
 		const { nodeEnv } = configService.getOrThrow<EnvironmentType>(
-			ConfigKeyEnum.ENVIRONMENT,
+			ConfigKey.Environment,
 		);
 
-		this.isProduction = nodeEnv === EnvironmentsEnum.PRODUCTION;
+		this.isProduction = nodeEnv === Environments.Production;
 	}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -45,7 +44,7 @@ export class LoggingInterceptor implements NestInterceptor {
 					const statusCode =
 						e instanceof HttpException
 							? e.getStatus()
-							: response.statusCode || httpConstants.INTERNAL_SERVER_ERROR;
+							: response.statusCode || Http.InternalServerError;
 					this.logResponse(
 						"error",
 						request,

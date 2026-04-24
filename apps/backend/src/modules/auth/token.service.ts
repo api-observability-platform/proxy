@@ -6,7 +6,7 @@ import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { nanoid } from "nanoid";
-import { ConfigKeyEnum } from "../../common/enums/config.enum";
+import { ConfigKey } from "../../common/constants/config-key.constant";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { refreshTokenNanoidLength } from "./consts/refresh-token-nanoid-length.const";
 import { parseDurationToMsUtil } from "./utils/duration.util";
@@ -22,7 +22,7 @@ export class TokenService {
 		@Inject(ConfigService) readonly configService: ConfigService,
 	) {
 		const { refreshExpiresIn } = configService.getOrThrow<JwtType>(
-			ConfigKeyEnum.JWT,
+			ConfigKey.Jwt,
 		);
 
 		this.refreshExpiresIn = refreshExpiresIn;
