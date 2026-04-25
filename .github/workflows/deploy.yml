@@ -58,15 +58,20 @@ jobs:
           strip_components: 1  
           overwrite: true  
 
-      - name: Setup and run backend application
+      - name: Install production deps, Prisma client, and start backend (PM2)
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}  
           username: ${{ secrets.EC2_USERNAME }}  
           key: ${{ secrets.EC2_PRIVATE_KEY }}  
           script: |
+            set -e
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
             cd ${{ env.DEPLOY_PATH }}
-            pm2 reload apps/backend/dist/src/main.js --name proxy-backend || pm2 start apps/backend/dist/src/main.js --name proxy-backend
+            npm ci --omit=dev
+            npm run db:generate -w apps/backend
+            pm2 delete proxy-backend 2>/dev/null || true
+            pm2 start npm --name proxy-backend --cwd "${{ env.DEPLOY_PATH }}/apps/backend" -- run start:prod
+            pm2 save
