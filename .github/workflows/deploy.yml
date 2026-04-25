@@ -23,6 +23,8 @@ jobs:
         run: npm i
 
       - name: Apply migrations && Generate Prisma client
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
         run: npm run db:migrate:deploy -w apps/backend && npm run db:generate -w apps/backend
 
       - name: Build backend application

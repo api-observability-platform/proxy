@@ -1,7 +1,11 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig } from "prisma/config";
 
-process.loadEnvFile(join(__dirname, ".env"));
+const envFilePath: string = join(__dirname, ".env");
+if (existsSync(envFilePath)) {
+	process.loadEnvFile(envFilePath);
+}
 
 const seedScriptPath: string = join(__dirname, "prisma", "seed.ts");
 
