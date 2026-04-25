@@ -1,3 +1,4 @@
+import type { CreateEndpoint } from "@proxy-server/shared";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -12,7 +13,7 @@ import {
 import { RateLimitConfigDto } from "./rate-limit-config.dto";
 import { TransformRuleDto } from "./transform-rule.dto";
 
-export class CreateEndpointDto {
+export class CreateEndpointDto implements CreateEndpoint {
 	@ApiProperty({
 		description: "Display name for the proxy endpoint",
 		example: "My API",

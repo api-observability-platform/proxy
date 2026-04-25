@@ -1,9 +1,10 @@
+import type { AnalyticsTimeseriesQuery } from "@proxy-server/shared";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, Max, Min } from "class-validator";
 import { analyticsConstants } from "../analytics.constants";
 
-export class AnalyticsTimeseriesQueryDto {
+export class AnalyticsTimeseriesQueryDto implements AnalyticsTimeseriesQuery {
 	@ApiPropertyOptional({
 		enum: ["hour", "day"],
 		description: "Time bucket size",

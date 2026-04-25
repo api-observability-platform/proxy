@@ -1,3 +1,4 @@
+import type { UpdateEndpoint } from "@proxy-server/shared";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -12,7 +13,7 @@ import {
 import { RateLimitConfigDto } from "./rate-limit-config.dto";
 import { TransformRuleDto } from "./transform-rule.dto";
 
-export class UpdateEndpointDto {
+export class UpdateEndpointDto implements UpdateEndpoint {
 	@ApiProperty({
 		description: "Updated display name for the proxy endpoint",
 		example: "My Updated API",

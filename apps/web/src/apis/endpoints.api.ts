@@ -4,8 +4,8 @@ import type {
 	RateLimitConfig,
 	TransformRule,
 } from "@proxy-server/shared";
-import type { HttpClient } from "./helpers/http-client";
-import { httpClient } from "./helpers/http-client";
+import type { HttpClient } from "./http-client";
+import { httpClient } from "./http-client";
 
 class EndpointsApi {
 	constructor(private readonly http: HttpClient) {}

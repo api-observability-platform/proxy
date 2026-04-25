@@ -1,5 +1,5 @@
 import type { UserDto } from "@proxy-server/shared";
-import type { RefreshSessionResultType } from "../types/refresh-session-result.type";
+import type { RefreshSessionResultType } from "./types/refresh-session-result.type";
 import { parseResponseHelper } from "./parse-response.helper";
 import { toApiUrl } from "./to-api-url.helper";
 

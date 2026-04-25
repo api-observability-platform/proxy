@@ -1,7 +1,8 @@
+import type { TransformRule } from "@proxy-server/shared";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsString, MinLength, ValidateIf } from "class-validator";
 
-export class TransformRuleDto {
+export class TransformRuleDto implements TransformRule {
 	@ApiProperty({
 		enum: ["ADD_HEADER", "REMOVE_HEADER", "REWRITE_PATH", "SET_BODY"],
 	})

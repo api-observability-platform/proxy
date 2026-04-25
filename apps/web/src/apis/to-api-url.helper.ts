@@ -1,4 +1,4 @@
-import { API_V1_BASE_PATH } from "../consts/api-base-path.const";
+import { API_V1_BASE_PATH } from "./consts/api-base-path.const";
 
 export const toApiUrl = (path: string): string => {
 	if (!path.startsWith("/")) {

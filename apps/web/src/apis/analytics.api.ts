@@ -3,8 +3,8 @@ import type {
 	AnalyticsSummaryDto,
 	AnalyticsTimeseriesPointDto,
 } from "@proxy-server/shared";
-import type { HttpClient } from "./helpers/http-client";
-import { httpClient } from "./helpers/http-client";
+import type { HttpClient } from "./http-client";
+import { httpClient } from "./http-client";
 
 class AnalyticsApi {
 	constructor(private readonly http: HttpClient) {}

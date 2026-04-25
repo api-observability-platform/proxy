@@ -1,10 +1,6 @@
 import type { Endpoint, Prisma } from "@prisma/generated/client";
-import type {
-	EndpointDto,
-	EndpointProtocol,
-	RateLimitConfig,
-	TransformRule,
-} from "@proxy-server/shared";
+import type { RateLimitConfig, TransformRule } from "@proxy-server/shared";
+import type { EndpointDto, EndpointProtocol } from "./types/endpoints.type";
 
 function parseRateLimit(
 	value: Prisma.JsonValue | null,

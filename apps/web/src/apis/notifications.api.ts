@@ -1,6 +1,6 @@
-import type { HttpClient } from "./helpers/http-client";
+import type { HttpClient } from "./http-client";
 import type { NotificationChannelDto } from "./types/notification-channel-dto.type";
-import { httpClient } from "./helpers/http-client";
+import { httpClient } from "./http-client";
 
 class NotificationsApi {
 	constructor(private readonly http: HttpClient) {}

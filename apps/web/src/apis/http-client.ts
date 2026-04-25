@@ -1,5 +1,5 @@
-import { auth401NoRefreshConst } from "../consts/auth-401-no-refresh.const";
 import { getApiClientConfig } from "./configure-api-client.helper";
+import { auth401NoRefreshConst } from "./consts/auth-401-no-refresh.const";
 import { parseResponseHelper } from "./parse-response.helper";
 import { refreshAccessTokenHelper } from "./refresh-access-token.helper";
 import { toApiUrl } from "./to-api-url.helper";

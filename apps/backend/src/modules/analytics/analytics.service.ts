@@ -2,7 +2,7 @@ import type {
 	AnalyticsBreakdownDto,
 	AnalyticsSummaryDto,
 	AnalyticsTimeseriesPointDto,
-} from "@proxy-server/shared";
+} from "./types/analytics.type";
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { analyticsConstants } from "./analytics.constants";

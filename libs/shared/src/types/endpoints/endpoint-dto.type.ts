@@ -1,6 +1,9 @@
-import type { EndpointProtocol } from "./endpoint-protocol.type";
 import type { RateLimitConfig } from "./rate-limit-config.type";
 import type { TransformRule } from "./transform-rule.type";
+
+export const ENDPOINT_PROTOCOLS = ["HTTP"] as const;
+
+export type EndpointProtocol = (typeof ENDPOINT_PROTOCOLS)[number];
 
 export type EndpointDto = {
 	id: string;

@@ -1,11 +1,11 @@
-import type {
-	EndpointDto,
-	EndpointListResponseDto,
-} from "@proxy-server/shared";
 import type { CurrentUserPayload } from "../../common/types/current-user-payload.type";
 import type { CreateEndpointDto } from "./dto/create-endpoint.dto";
 import type { ListEndpointsQueryDto } from "./dto/list-endpoints-query.dto";
 import type { UpdateEndpointDto } from "./dto/update-endpoint.dto";
+import type {
+	EndpointDto,
+	EndpointListResponseDto,
+} from "./types/endpoints.type";
 import {
 	ForbiddenException,
 	Inject,

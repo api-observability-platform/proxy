@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/generated/client.js";
-import type { ErrorResponseBody } from "@proxy-server/shared";
 import type { Request } from "express";
 import type { EnvironmentType } from "../../core/config/types/environment.type.js";
+import type { ErrorResponseBody } from "../types/error-response-body.type.js";
 import type { HttpExceptionResponse } from "../types/http-exception-response.type.js";
 import {
 	type ArgumentsHost,

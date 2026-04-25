@@ -7,20 +7,20 @@ import type {
 	UserDto,
 	VerifyEmail,
 } from "@proxy-server/shared";
-import { type HttpClient, httpClient } from "./helpers/http-client";
-import { toApiUrl } from "./helpers/to-api-url.helper";
+import { type HttpClient, httpClient } from "./http-client";
+import { toApiUrl } from "./to-api-url.helper";
 
 class AuthApi {
 	constructor(private readonly http: HttpClient) {}
 
-	signUp(data: SignUp) {
+	signUp(data: SignUp): Promise<{ message: string }> {
 		return this.http.request<{ message: string }>("/auth/sign-up", {
 			method: "POST",
 			body: JSON.stringify(data),
 		});
 	}
 
-	signIn(data: SignIn) {
+	signIn(data: SignIn): Promise<{ accessToken: string; user: UserDto }> {
 		return this.http.request<{ accessToken: string; user: UserDto }>(
 			"/auth/sign-in",
 			{
@@ -30,7 +30,9 @@ class AuthApi {
 		);
 	}
 
-	verifyEmail(data: VerifyEmail) {
+	verifyEmail(
+		data: VerifyEmail,
+	): Promise<{ accessToken: string; user: UserDto }> {
 		return this.http.request<{ accessToken: string; user: UserDto }>(
 			"/auth/verify-email",
 			{
@@ -40,21 +42,21 @@ class AuthApi {
 		);
 	}
 
-	resendVerification(data: ResendVerification) {
+	resendVerification(data: ResendVerification): Promise<{ message: string }> {
 		return this.http.request<{ message: string }>("/auth/resend-verification", {
 			method: "POST",
 			body: JSON.stringify(data),
 		});
 	}
 
-	forgotPassword(data: ForgotPassword) {
+	forgotPassword(data: ForgotPassword): Promise<{ message: string }> {
 		return this.http.request<{ message: string }>("/auth/forgot-password", {
 			method: "POST",
 			body: JSON.stringify(data),
 		});
 	}
 
-	resetPassword(data: ResetPassword) {
+	resetPassword(data: ResetPassword): Promise<{ message: string }> {
 		return this.http.request<{ message: string }>("/auth/reset-password", {
 			method: "POST",
 			body: JSON.stringify(data),

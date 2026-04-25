@@ -11,8 +11,8 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "@/apis/auth.api";
-import { configureApiClientHelper } from "@/apis/helpers/configure-api-client.helper";
-import { refreshAccessTokenHelper } from "@/apis/helpers/refresh-access-token.helper";
+import { configureApiClientHelper } from "@/apis/configure-api-client.helper";
+import { refreshAccessTokenHelper } from "@/apis/refresh-access-token.helper";
 
 const AUTH_SESSION_QUERY_KEY = ["auth", "session"] as const;
 

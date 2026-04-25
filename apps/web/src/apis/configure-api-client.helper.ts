@@ -1,4 +1,4 @@
-import type { ApiClientConfigType } from "../types/api-client-config.type";
+import type { ApiClientConfigType } from "./types/api-client-config.type";
 
 let clientConfig: ApiClientConfigType | null = null;
 

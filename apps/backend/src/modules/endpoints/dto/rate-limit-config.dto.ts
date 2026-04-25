@@ -1,8 +1,9 @@
+import type { RateLimitConfig } from "@proxy-server/shared";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsInt, Max, Min } from "class-validator";
 
-export class RateLimitConfigDto {
+export class RateLimitConfigDto implements RateLimitConfig {
 	@ApiProperty({
 		description: "Max requests allowed in the window",
 		example: 100,
