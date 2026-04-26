@@ -7,12 +7,15 @@ import { defineConfig, loadEnv } from "vite";
 const webRoot = dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = resolve(webRoot, "../..");
 
-const apiTarget = "http://localhost:3000";
-
 const sharedSrcIndex = resolve(monorepoRoot, "libs/shared/src/index.ts");
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
+
+	const apiUrl =
+		env.NODE_ENV === "development"
+			? "http://localhost:3000"
+			: "http://ec2-16-170-170-8.eu-north-1.compute.amazonaws.com:3000";
 
 	return {
 		root: process.cwd(),
@@ -24,9 +27,6 @@ export default defineConfig(({ mode }) => {
 		optimizeDeps: {
 			exclude: ["@proxy-server/shared"],
 		},
-		preview: {
-			allowedHosts: [env.AWS_PUBLIC_DNS],
-		},
 		resolve: {
 			alias: {
 				"@": resolve(webRoot, "src"),
@@ -37,12 +37,12 @@ export default defineConfig(({ mode }) => {
 			allowedHosts: [env.AWS_PUBLIC_DNS],
 			proxy: {
 				"/api/v1": {
-					target: apiTarget,
+					target: apiUrl,
 					changeOrigin: true,
 					secure: true,
 				},
 				"/r": {
-					target: apiTarget,
+					target: apiUrl,
 					changeOrigin: true,
 					secure: true,
 				},
