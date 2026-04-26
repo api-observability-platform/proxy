@@ -47,7 +47,6 @@ import { MessageResponseSchema } from "../../common/swagger/schemas/message-resp
 import { AuthService } from "./auth.service";
 import { AuthThrottle } from "./constsants/auth-throttle.constant";
 import { RefreshCookieName } from "./constsants/refresh-cookie.constant";
-import { Swagger } from "./constsants/swagger.constant";
 import { ForgotPasswordDto } from "./dtos/forgot-password.dto";
 import { ResendVerificationDto } from "./dtos/resend-verification.dto";
 import { ResetPasswordDto } from "./dtos/reset-password.dto";
@@ -57,7 +56,7 @@ import { VerifyEmailDto } from "./dtos/verify-email.dto";
 import { RefreshAuthGuard } from "./guards/refresh-auth.guard";
 import { parseDurationToMsUtil } from "./utils/duration.util";
 
-@ApiTags(Swagger.Tag)
+@ApiTags("Auth")
 @ApiExtraModels(
 	AuthResponseSchema,
 	AuthUserSchema,
@@ -65,7 +64,7 @@ import { parseDurationToMsUtil } from "./utils/duration.util";
 	LogoutResponseSchema,
 	MessageResponseSchema,
 )
-@Controller(Swagger.Route)
+@Controller("auth")
 export class AuthController {
 	private readonly isProduction: boolean;
 	private readonly refreshExpiresIn: string;
@@ -128,31 +127,34 @@ export class AuthController {
 		},
 	})
 	@HttpCode(HttpStatus.CREATED)
-	@Post(Swagger.Routes.SignUp.Route)
+	@Post("sign-up")
 	@ApiBody({ type: SignUpDto })
 	@ApiOperation({
-		summary: Swagger.Routes.SignUp.Operation.Summary,
-		description: Swagger.Routes.SignUp.Operation.Descr,
+		summary: "Register a new user.",
+		description:
+			"Creates an unverified account, hashes the password, stores a time-limited verification code (hashed), and sends a 6-digit code by email. Does not return tokens; call **verify-email** after checking the inbox. Rate limited.",
 		security: [],
 	})
 	@ApiCreatedResponse({
-		description: Swagger.Routes.SignUp.Responses.Created,
+		description:
+			"Account created. Response body contains only a **message**; no tokens.",
 		schema: { $ref: getSchemaPath(MessageResponseSchema) },
 	})
 	@ApiBadRequestResponse({
-		description: Swagger.Routes.SignUp.Responses.BadRequest,
+		description:
+			"Validation failed (e.g. invalid email, password shorter than 8 characters).",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiConflictResponse({
-		description: Swagger.Routes.SignUp.Responses.Conflict,
+		description: "Email is already registered.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiTooManyRequestsResponse({
-		description: Swagger.Routes.SignUp.Responses.TooManyRequests,
+		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiInternalServerErrorResponse({
-		description: Swagger.Routes.SignUp.Responses.InternalServerError,
+		description: "Unexpected server error while creating the user.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public signUp(@Body() signUpDto: SignUpDto): Promise<{ message: string }> {
@@ -167,23 +169,25 @@ export class AuthController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	@Post(Swagger.Routes.VerifyEmail.Route)
+	@Post("verify-email")
 	@ApiBody({ type: VerifyEmailDto })
 	@ApiOperation({
-		summary: Swagger.Routes.VerifyEmail.Operation.Summary,
-		description: Swagger.Routes.VerifyEmail.Operation.Descr,
+		summary: "Verify email with 6-digit code.",
+		description:
+			"Confirms ownership of the email using the code from sign-up. On success, returns **accessToken** and **user** in the JSON body and sets the **refresh_token** httpOnly cookie (rotating refresh sessions use the same cookie name). Rate limited.",
 		security: [],
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.VerifyEmail.Responses.Ok,
+		description:
+			"Email verified. **accessToken** and **user** in body; **refresh_token** cookie set.",
 		schema: { $ref: getSchemaPath(AuthResponseSchema) },
 	})
 	@ApiBadRequestResponse({
-		description: Swagger.Routes.VerifyEmail.Responses.BadRequest,
+		description: "Email is already verified.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiUnauthorizedResponse({
-		description: Swagger.Routes.VerifyEmail.Responses.Unauthorized,
+		description: "Unknown email, wrong or expired code, or missing code data.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public async verifyEmail(
@@ -202,23 +206,25 @@ export class AuthController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	@Post(Swagger.Routes.ResendVerification.Route)
+	@Post("resend-verification")
 	@ApiBody({ type: ResendVerificationDto })
 	@ApiOperation({
-		summary: Swagger.Routes.ResendVerification.Operation.Summary,
-		description: Swagger.Routes.ResendVerification.Operation.Descr,
+		summary: "Resend verification code.",
+		description:
+			"If the account exists and is still unverified, generates a new code and emails it. Response is always a generic **message** to avoid email enumeration. Rate limited.",
 		security: [],
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.ResendVerification.Responses.Ok,
+		description:
+			"Generic success **message** (whether or not an email was sent).",
 		schema: { $ref: getSchemaPath(MessageResponseSchema) },
 	})
 	@ApiBadRequestResponse({
-		description: Swagger.Routes.ResendVerification.Responses.BadRequest,
+		description: "Email is already verified.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiTooManyRequestsResponse({
-		description: Swagger.Routes.ResendVerification.Responses.TooManyRequests,
+		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public resendVerification(
@@ -235,35 +241,37 @@ export class AuthController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	@Post(Swagger.Routes.SignIn.Route)
+	@Post("sign-in")
 	@ApiBody({ type: SignInDto })
 	@ApiOperation({
-		summary: Swagger.Routes.SignIn.Operation.Summary,
-		description: Swagger.Routes.SignIn.Operation.Descr,
+		summary: "Authenticate user.",
+		description:
+			"Requires a **verified** email. Returns **accessToken** and **user** in the JSON body and sets the **refresh_token** httpOnly, **Secure** (in production), **SameSite=Lax** cookie. Rate limited.",
 		security: [],
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.SignIn.Responses.Ok,
+		description:
+			"Authenticated. **accessToken** and **user** in body; **refresh_token** cookie set.",
 		schema: { $ref: getSchemaPath(AuthResponseSchema) },
 	})
 	@ApiBadRequestResponse({
-		description: Swagger.Routes.SignIn.Responses.BadRequest,
+		description: "Validation failed (e.g. missing password).",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiUnauthorizedResponse({
-		description: Swagger.Routes.SignIn.Responses.Unauthorized,
+		description: "Wrong email or password.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiForbiddenResponse({
-		description: Swagger.Routes.SignIn.Responses.Forbidden,
+		description: "Email exists but is not verified yet.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiTooManyRequestsResponse({
-		description: Swagger.Routes.SignIn.Responses.TooManyRequests,
+		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiInternalServerErrorResponse({
-		description: Swagger.Routes.SignIn.Responses.InternalServerError,
+		description: "Unexpected server error during sign-in.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public async signIn(
@@ -282,23 +290,25 @@ export class AuthController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	@Post(Swagger.Routes.ForgotPassword.Route)
+	@Post("forgot-password")
 	@ApiBody({ type: ForgotPasswordDto })
 	@ApiOperation({
-		summary: Swagger.Routes.ForgotPassword.Operation.Summary,
-		description: Swagger.Routes.ForgotPassword.Operation.Descr,
+		summary: "Request password reset code.",
+		description:
+			"If the account exists, stores a time-limited reset code (hashed) and emails a 6-digit code. Response is always a generic **message** to avoid email enumeration. Rate limited.",
 		security: [],
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.ForgotPassword.Responses.Ok,
+		description:
+			"Generic **message** (no indication whether the email exists).",
 		schema: { $ref: getSchemaPath(MessageResponseSchema) },
 	})
 	@ApiBadRequestResponse({
-		description: Swagger.Routes.ForgotPassword.Responses.BadRequest,
+		description: "Validation failed (e.g. invalid email).",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiTooManyRequestsResponse({
-		description: Swagger.Routes.ForgotPassword.Responses.TooManyRequests,
+		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public forgotPassword(
@@ -315,27 +325,30 @@ export class AuthController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	@Post(Swagger.Routes.ResetPassword.Route)
+	@Post("reset-password")
 	@ApiBody({ type: ResetPasswordDto })
 	@ApiOperation({
-		summary: Swagger.Routes.ResetPassword.Operation.Summary,
-		description: Swagger.Routes.ResetPassword.Operation.Descr,
+		summary: "Reset password with code.",
+		description:
+			"Validates the 6-digit code, sets a new password, clears reset fields, and revokes all refresh tokens for the user. Does not set a new session cookie; sign in again after reset. Rate limited.",
 		security: [],
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.ResetPassword.Responses.Ok,
+		description:
+			"Password updated. Generic **message**; sign in to obtain new tokens.",
 		schema: { $ref: getSchemaPath(MessageResponseSchema) },
 	})
 	@ApiBadRequestResponse({
-		description: Swagger.Routes.ResetPassword.Responses.BadRequest,
+		description:
+			"Validation failed (e.g. password too short, invalid code format).",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiUnauthorizedResponse({
-		description: Swagger.Routes.ResetPassword.Responses.Unauthorized,
+		description: "Unknown email, wrong code, or expired reset code.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	@ApiTooManyRequestsResponse({
-		description: Swagger.Routes.ResetPassword.Responses.TooManyRequests,
+		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public resetPassword(
@@ -347,18 +360,21 @@ export class AuthController {
 	@Public()
 	@UseGuards(RefreshAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	@Post(Swagger.Routes.Refresh.Route)
+	@Post("refresh")
 	@ApiOperation({
-		summary: Swagger.Routes.Refresh.Operation.Summary,
-		description: Swagger.Routes.Refresh.Operation.Descr,
+		summary: "Refresh access token.",
+		description:
+			"Reads the **refresh_token** httpOnly cookie, validates the session, **revokes** the previous refresh token, issues a new pair, and sets a fresh **refresh_token** cookie. No `Authorization` header required. Not rate-limited at the application layer.",
 		security: [],
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.Refresh.Responses.Ok,
+		description:
+			"New **accessToken** and **user** in body; new **refresh_token** cookie.",
 		schema: { $ref: getSchemaPath(AuthResponseSchema) },
 	})
 	@ApiUnauthorizedResponse({
-		description: Swagger.Routes.Refresh.Responses.Unauthorized,
+		description:
+			"Missing cookie, invalid or revoked token, expired session, or unverified email on record.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public async refresh(
@@ -374,18 +390,20 @@ export class AuthController {
 	}
 
 	@HttpCode(HttpStatus.OK)
-	@Post(Swagger.Routes.Logout.Route)
+	@Post("logout")
 	@ApiBearerAuth("Bearer")
 	@ApiOperation({
-		summary: Swagger.Routes.Logout.Operation.Summary,
-		description: Swagger.Routes.Logout.Operation.Descr,
+		summary: "Revoke refresh session.",
+		description:
+			"Requires a valid **Bearer** access token (global JWT guard). Revokes the refresh token identified by the **refresh_token** cookie (if present) and clears that cookie. Idempotent if the cookie is already absent.",
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.Logout.Responses.Ok,
+		description:
+			"Session revoked. Body is **{ success: true }**; refresh cookie cleared.",
 		schema: { $ref: getSchemaPath(LogoutResponseSchema) },
 	})
 	@ApiUnauthorizedResponse({
-		description: Swagger.Routes.Logout.Responses.Unauthorized,
+		description: "Missing or invalid access token.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public async logout(
@@ -398,18 +416,20 @@ export class AuthController {
 		return { success: true };
 	}
 
-	@Get(Swagger.Routes.Me.Route)
+	@Get("me")
 	@ApiBearerAuth("Bearer")
 	@ApiOperation({
-		summary: Swagger.Routes.Me.Operation.Summary,
-		description: Swagger.Routes.Me.Operation.Descr,
+		summary: "Current user.",
+		description:
+			"Returns the authenticated user (**id**, **email**, **name**) from the database using the **Bearer** access token subject. Fails if the user was deleted after the token was issued.",
 	})
 	@ApiOkResponse({
-		description: Swagger.Routes.Me.Responses.Ok,
+		description: "Current user profile (**id**, **email**, **name**).",
 		schema: { $ref: getSchemaPath(AuthUserSchema) },
 	})
 	@ApiUnauthorizedResponse({
-		description: Swagger.Routes.Me.Responses.Unauthorized,
+		description:
+			"Missing, invalid, or expired access token; or user no longer exists.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
 	public me(

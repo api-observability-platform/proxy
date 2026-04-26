@@ -29,7 +29,7 @@ import { swaggerRegister } from "./registers/swagger.register";
 			],
 			validationSchema: Joi.object({
 				NODE_ENV: Joi.string()
-					.valid("development", "test", "production")
+					.valid("development", "staging", "production")
 					.default("development"),
 
 				POSTGRES_URL: Joi.string().required(),
