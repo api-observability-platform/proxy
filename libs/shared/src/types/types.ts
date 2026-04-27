@@ -1,8 +1,8 @@
-export type { AnalyticsTimeseriesQuery } from "./analytics/analytics";
 export type {
-	AnalyticsBreakdownDto,
-	AnalyticsSummaryDto,
-	AnalyticsTimeseriesPointDto,
+	AnalyticsBreakdown,
+	AnalyticsSummary,
+	AnalyticsTimeseriesPoint,
+	AnalyticsTimeseriesQuery,
 } from "./analytics/analytics";
 export type {
 	ForgotPassword,
@@ -10,7 +10,7 @@ export type {
 	ResetPassword,
 	SignIn,
 	SignUp,
-	UserDto,
+	User,
 	VerifyEmail,
 } from "./auth/auth";
 export type { ErrorResponseBody } from "./common/error-response-body.type";

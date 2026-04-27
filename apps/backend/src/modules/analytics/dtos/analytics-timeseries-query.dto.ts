@@ -17,12 +17,12 @@ export class AnalyticsTimeseriesQueryDto implements AnalyticsTimeseriesQuery {
 	@ApiPropertyOptional({
 		description: "Max data points",
 		minimum: 1,
-		maximum: analyticsConstants.MAX_TIMESERIES_LIMIT,
+		maximum: analyticsConstants.maxTimeseriesLimit,
 	})
 	@IsOptional()
 	@Type(() => Number)
 	@IsInt()
 	@Min(1)
-	@Max(analyticsConstants.MAX_TIMESERIES_LIMIT)
+	@Max(analyticsConstants.maxTimeseriesLimit)
 	limit?: number;
 }

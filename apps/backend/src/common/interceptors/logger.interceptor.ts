@@ -12,9 +12,9 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { type Observable, tap } from "rxjs";
-import { ConfigKey } from "../constants/config-key.constant.js";
-import { Environments } from "../constants/environments.constant.js";
-import { Http } from "../constants/http.constants.js";
+import { configKeyConst } from "../consts/config-key.const.js";
+import { environmentsConst } from "../consts/environments.const.js";
+import { httpConst } from "../consts/http.const.js";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -23,10 +23,10 @@ export class LoggingInterceptor implements NestInterceptor {
 
 	constructor(@Inject(ConfigService) readonly configService: ConfigService) {
 		const { nodeEnv } = configService.getOrThrow<EnvironmentType>(
-			ConfigKey.Environment,
+			configKeyConst.environment,
 		);
 
-		this.isProduction = nodeEnv === Environments.Production;
+		this.isProduction = nodeEnv === environmentsConst.production;
 	}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -44,7 +44,7 @@ export class LoggingInterceptor implements NestInterceptor {
 					const statusCode =
 						e instanceof HttpException
 							? e.getStatus()
-							: response.statusCode || Http.InternalServerError;
+							: response.statusCode || httpConst.internalServerError;
 					this.logResponse(
 						"error",
 						request,

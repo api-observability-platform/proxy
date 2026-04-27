@@ -1,4 +1,4 @@
 import { SetMetadata } from "@nestjs/common";
-import { IsPublicKey } from "../constants/is-public-key.constant";
+import { isPublicKeyConst } from "../consts/is-public-key.const";
 
-export const Public = () => SetMetadata(IsPublicKey, true);
+export const PublicDecorator = () => SetMetadata(isPublicKeyConst, true);

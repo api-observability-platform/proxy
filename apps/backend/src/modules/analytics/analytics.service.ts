@@ -1,8 +1,8 @@
 import type {
-	AnalyticsBreakdownDto,
-	AnalyticsSummaryDto,
-	AnalyticsTimeseriesPointDto,
-} from "./types/analytics.type";
+	AnalyticsBreakdown,
+	AnalyticsSummary,
+	AnalyticsTimeseriesPoint,
+} from "@proxy-server/shared";
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { analyticsConstants } from "./analytics.constants";
@@ -13,7 +13,7 @@ export class AnalyticsService {
 		@Inject(PrismaService) private readonly prismaService: PrismaService,
 	) {}
 
-	async ensureEndpointAccess(
+	private async ensureEndpointAccess(
 		endpointId: string,
 		userId: string,
 	): Promise<{ id: string }> {
@@ -26,13 +26,13 @@ export class AnalyticsService {
 		return endpoint;
 	}
 
-	async getSummary(
+	public async getSummary(
 		endpointId: string,
 		userId: string,
-	): Promise<AnalyticsSummaryDto> {
+	): Promise<AnalyticsSummary> {
 		await this.ensureEndpointAccess(endpointId, userId);
 		const now = new Date();
-		const last24h = new Date(now.getTime() - analyticsConstants.LAST_24H_MS);
+		const last24h = new Date(now.getTime() - analyticsConstants.last_24HMs);
 		const [total, last24hCount, avgLatency, errorCount, successCount] =
 			await Promise.all([
 				this.prismaService.requestLog.count({ where: { endpointId } }),
@@ -49,7 +49,7 @@ export class AnalyticsService {
 						OR: [
 							{
 								responseStatus: {
-									gte: analyticsConstants.HTTP_STATUS_SERVER_ERROR_THRESHOLD,
+									gte: analyticsConstants.httpStatusServerErrorThreshold,
 								},
 							},
 							{ responseStatus: null },
@@ -60,13 +60,13 @@ export class AnalyticsService {
 					where: {
 						endpointId,
 						responseStatus: {
-							gte: analyticsConstants.HTTP_STATUS_SUCCESS_MIN,
-							lt: analyticsConstants.HTTP_STATUS_SUCCESS_MAX,
+							gte: analyticsConstants.httpStatusSuccessMin,
+							lt: analyticsConstants.httpStatusSuccessMax,
 						},
 					},
 				}),
 			]);
-		const totalForUptime = total || analyticsConstants.UPTIME_DIVISOR_FALLBACK;
+		const totalForUptime = total || analyticsConstants.uptimeDivisorFallback;
 		const uptimePercent = ((successCount / totalForUptime) * 100).toFixed(2);
 		const errorRate = ((errorCount / totalForUptime) * 100).toFixed(2);
 		return {
@@ -78,15 +78,15 @@ export class AnalyticsService {
 		};
 	}
 
-	async getTimeseries(
+	public async getTimeseries(
 		endpointId: string,
 		userId: string,
 		options: { bucket: "hour" | "day"; limit?: number },
-	): Promise<AnalyticsTimeseriesPointDto[]> {
+	): Promise<AnalyticsTimeseriesPoint[]> {
 		await this.ensureEndpointAccess(endpointId, userId);
 		const limit = Math.min(
-			options.limit ?? analyticsConstants.DEFAULT_TIMESERIES_LIMIT,
-			analyticsConstants.MAX_TIMESERIES_LIMIT,
+			options.limit ?? analyticsConstants.defaultTimeseriesLimit,
+			analyticsConstants.maxTimeseriesLimit,
 		);
 		const bucket = options.bucket ?? "hour";
 		const truncUnit = bucket === "hour" ? "hour" : "day";
@@ -112,8 +112,8 @@ export class AnalyticsService {
 		);
 		const prefixLen =
 			bucket === "hour"
-				? analyticsConstants.ISO_HOUR_BUCKET_PREFIX_LENGTH
-				: analyticsConstants.ISO_DAY_BUCKET_PREFIX_LENGTH;
+				? analyticsConstants.isoHourBucketPrefixLength
+				: analyticsConstants.isoDayBucketPrefixLength;
 		return rows.map((r) => ({
 			bucket: r.bucket.toISOString().slice(0, prefixLen),
 			requests: Number(r.requests),
@@ -121,10 +121,10 @@ export class AnalyticsService {
 		}));
 	}
 
-	async getBreakdown(
+	public async getBreakdown(
 		endpointId: string,
 		userId: string,
-	): Promise<AnalyticsBreakdownDto> {
+	): Promise<AnalyticsBreakdown> {
 		await this.ensureEndpointAccess(endpointId, userId);
 		const [byMethod, byStatus] = await Promise.all([
 			this.prismaService.requestLog.groupBy({

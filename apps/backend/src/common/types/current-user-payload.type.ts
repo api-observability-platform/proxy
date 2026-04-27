@@ -1,4 +1,4 @@
-import type { UserDto } from "@proxy-server/shared";
+import type { User } from "@proxy-server/shared";
 
-export type { UserDto };
-export type CurrentUserPayload = UserDto;
+export type { User };
+export type CurrentUserPayload = User;

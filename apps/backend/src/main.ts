@@ -10,8 +10,8 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
-import { ConfigKey } from "./common/constants/config-key.constant";
-import { Environments } from "./common/constants/environments.constant";
+import { configKeyConst } from "./common/consts/config-key.const";
+import { environmentsConst } from "./common/consts/environments.const";
 import { CatchEverythingFilter } from "./common/filters/catch-everything.filter";
 import { LoggingInterceptor } from "./common/interceptors/logger.interceptor";
 import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
@@ -29,7 +29,7 @@ const setupSwagger = (
 	appPort: number,
 ): string => {
 	const { siteTitle, name, descr, path } =
-		configService.getOrThrow<SwaggerType>(ConfigKey.Swagger);
+		configService.getOrThrow<SwaggerType>(configKeyConst.swagger);
 
 	const documentBuilder = new DocumentBuilder()
 		.setTitle(name)
@@ -37,8 +37,8 @@ const setupSwagger = (
 		.setVersion("1.0")
 		.setContact("Proxy Server", "", "")
 		.setLicense("MIT", "")
-		.addServer(`http://localhost:${appPort}`, Environments.Development)
-		.addServer(`http://lvh.me:${appPort}`, Environments.Production)
+		.addServer(`http://localhost:${appPort}`, environmentsConst.development)
+		.addServer(`http://lvh.me:${appPort}`, environmentsConst.production)
 		.addBearerAuth(
 			{
 				bearerFormat: "JWT",
@@ -94,12 +94,14 @@ const setupSwagger = (
 
 	const configService = app.get(ConfigService);
 
-	const { port, corsOrigin } = configService.getOrThrow<AppType>(ConfigKey.App);
+	const { port, corsOrigin } = configService.getOrThrow<AppType>(
+		configKeyConst.app,
+	);
 	const { nodeEnv } = configService.getOrThrow<EnvironmentType>(
-		ConfigKey.Environment,
+		configKeyConst.environment,
 	);
 
-	const isProduction = nodeEnv === Environments.Production;
+	const isProduction = nodeEnv === environmentsConst.production;
 
 	app.enableVersioning({
 		defaultVersion: "1",

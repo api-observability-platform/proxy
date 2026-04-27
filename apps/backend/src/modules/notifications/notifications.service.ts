@@ -7,9 +7,9 @@ import {
 	Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ConfigKey } from "../../common/constants/config-key.constant.js";
+import { configKeyConst } from "../../common/consts/config-key.const.js";
+import { EmailService } from "../../core/email/email.service.js";
 import { PrismaService } from "../../core/prisma/prisma.service";
-import { EmailService } from "../email/email.service";
 import { AlertThrottleService } from "./alert-throttle.service";
 import { SlackService } from "./slack.service";
 import { TelegramService } from "./telegram.service";
@@ -39,7 +39,7 @@ export class NotificationsService {
 		@Inject(EmailService) private readonly emailService: EmailService,
 	) {
 		const { dashboardBaseUrl } = configService.getOrThrow<AppType>(
-			ConfigKey.App,
+			configKeyConst.app,
 		);
 
 		this.dashboardBaseUrl = dashboardBaseUrl;

@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipThrottle } from "@nestjs/throttler";
-import { Public } from "../../common/decorators/public.decorator";
+import { PublicDecorator } from "../../common/decorators/public.decorator";
 import { HealthService } from "./health.service";
 
 @SkipThrottle()
@@ -12,14 +12,14 @@ export class HealthController {
 		@Inject(HealthService) private readonly healthService: HealthService,
 	) {}
 
-	@Public()
+	@PublicDecorator()
 	@Get("live")
 	@ApiOperation({ summary: "Liveness probe" })
 	liveness(): { status: string } {
 		return { status: "ok" };
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Get("ready")
 	@ApiOperation({ summary: "Readiness probe (database)" })
 	async readiness(): Promise<{ status: string }> {

@@ -7,10 +7,7 @@ const config: KnipConfig = {
 			project: ["src/**/*.ts"],
 			ignoreDependencies: ["@prisma/client", "tsconfig-paths"],
 			ignoreBinaries: ["compodoc"],
-			ignoreFiles: [
-				"src/core/schedule/schedule.module.ts",
-				"src/modules/email/email.constants.ts",
-			],
+			ignoreFiles: ["src/core/schedule/schedule.module.ts"],
 		},
 		"apps/web": {
 			project: ["src/**/*.{ts,tsx}"],

@@ -12,7 +12,8 @@
 			},
 			"suspicious": {
 				"noExplicitAny": "error",
-				"noThenProperty": "error"
+				"noThenProperty": "error",
+				"noShadowRestrictedNames": "off"
 			}
 		}
 	},

@@ -1,4 +1,4 @@
-export function parseDurationToMsUtil(input: string): number {
+export const parseDurationToMs = (input: string): number => {
 	const s = input.trim();
 	const m = /^(\d+)([smhd])$/i.exec(s);
 	if (!m) {
@@ -11,4 +11,4 @@ export function parseDurationToMsUtil(input: string): number {
 	const mult =
 		u === "s" ? 1000 : u === "m" ? 60_000 : u === "h" ? 3_600_000 : 86_400_000;
 	return n * mult;
-}
+};

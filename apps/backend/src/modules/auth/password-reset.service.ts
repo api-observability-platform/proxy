@@ -1,49 +1,39 @@
-import {
-	Inject,
-	Injectable,
-	Logger,
-	UnauthorizedException,
-} from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
+import { EmailService } from "../../core/email/email.service";
 import { PrismaService } from "../../core/prisma/prisma.service";
-import { EmailService } from "../email/email.service";
-import { AuthCrypto } from "./constsants/auth-crypto.constant";
-import { generateSixDigitCodeUtil } from "./utils/auth-code.util";
+import { authConstants } from "./auth.constants";
+import { generateSixDigitCode } from "./utils/auth-code.util";
 
 @Injectable()
 export class PasswordResetService {
-	private readonly logger = new Logger(PasswordResetService.name);
-
 	constructor(
 		@Inject(PrismaService) private readonly prismaService: PrismaService,
 		@Inject(EmailService) private readonly emailService: EmailService,
 	) {}
 
 	async forgotPassword(email: string): Promise<{ message: string }> {
-		const emailLower = email.toLowerCase();
 		const user = await this.prismaService.user.findUnique({
-			where: { email: emailLower },
+			where: { email },
 		});
 		if (!user) {
 			return { message: "If an account exists, a reset code was sent." };
 		}
-		const plainCode = generateSixDigitCodeUtil();
+		const plainCode = generateSixDigitCode();
 		const passwordResetCodeHash = await bcrypt.hash(
 			plainCode,
-			AuthCrypto.SaltRounds,
+			authConstants.crypto.saltRounds,
 		);
 		await this.prismaService.user.update({
 			where: { id: user.id },
 			data: {
 				passwordResetCodeHash,
-				passwordResetExpiresAt: new Date(Date.now() + AuthCrypto.CodeTtlMs),
+				passwordResetExpiresAt: new Date(
+					Date.now() + authConstants.crypto.codeTtlMs,
+				),
 			},
 		});
-		await this.emailService
-			.sendPasswordResetCode(emailLower, plainCode)
-			.catch((e) => {
-				this.logger.error(`Failed to send reset email: ${e}`);
-			});
+		await this.emailService.sendPasswordResetCode(email, plainCode);
 		return { message: "If an account exists, a reset code was sent." };
 	}
 
@@ -52,9 +42,8 @@ export class PasswordResetService {
 		code: string,
 		newPassword: string,
 	): Promise<{ message: string }> {
-		const emailLower = email.toLowerCase();
 		const user = await this.prismaService.user.findUnique({
-			where: { email: emailLower },
+			where: { email },
 		});
 		if (
 			!user?.passwordResetCodeHash ||
@@ -63,11 +52,14 @@ export class PasswordResetService {
 		) {
 			throw new UnauthorizedException("Invalid or expired reset code");
 		}
-		const ok = await bcrypt.compare(code, user.passwordResetCodeHash);
-		if (!ok) {
+		const codeMatched = await bcrypt.compare(code, user.passwordResetCodeHash);
+		if (!codeMatched) {
 			throw new UnauthorizedException("Invalid or expired reset code");
 		}
-		const passwordHash = await bcrypt.hash(newPassword, AuthCrypto.SaltRounds);
+		const passwordHash = await bcrypt.hash(
+			newPassword,
+			authConstants.crypto.saltRounds,
+		);
 		await this.prismaService.$transaction([
 			this.prismaService.user.update({
 				where: { id: user.id },

@@ -1,8 +1,8 @@
 import type { AppType } from "../types/app.type";
 import { registerAs } from "@nestjs/config";
-import { ConfigKey } from "../../../common/constants/config-key.constant";
+import { configKeyConst } from "../../../common/consts/config-key.const";
 
-export const appRegister = registerAs(ConfigKey.App, (): AppType => {
+export const appRegister = registerAs(configKeyConst.app, (): AppType => {
 	const port = Number(process.env.APP_PORT || "");
 	const requestTimeout = Number(process.env.APP_REQUEST_TIMEOUT || "");
 	const corsOrigin = process.env.APP_CORS_ORIGIN || "";

@@ -5,16 +5,22 @@ import { IsEmail, IsString, Length, Matches, MinLength } from "class-validator";
 export class ResetPasswordDto implements ResetPassword {
 	@ApiProperty({ example: "user@example.com" })
 	@IsEmail()
-	email!: string;
+	email: string;
 
 	@ApiProperty({ example: "123456" })
 	@IsString()
 	@Length(6, 6)
 	@Matches(/^\d{6}$/)
-	code!: string;
+	code: string;
 
 	@ApiProperty({ minLength: 8 })
 	@IsString()
 	@MinLength(8, { message: "Password must be at least 8 characters" })
-	newPassword!: string;
+	newPassword: string;
+
+	constructor(email: string, code: string, newPassword: string) {
+		this.email = email;
+		this.code = code;
+		this.newPassword = newPassword;
+	}
 }

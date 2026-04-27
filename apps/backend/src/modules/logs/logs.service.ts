@@ -6,7 +6,7 @@ import {
 	Injectable,
 	NotFoundException,
 } from "@nestjs/common";
-import { Pagination } from "../../common/constants/pagination.constants";
+import { paginationConst } from "../../common/consts/pagination.const";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { type ProxyLogPayload, ProxyService } from "../../proxy/proxy.service";
 import { proxyRequestConstants } from "../../proxy/proxy-request.constants";
@@ -31,8 +31,8 @@ export class LogsService {
 		}
 		const limit =
 			query.limit ??
-			Math.min(Pagination.DefaultListLimit, Pagination.MaxListLimit);
-		const offset = query.offset ?? Pagination.DefaultOffset;
+			Math.min(paginationConst.defaultListLimit, paginationConst.maxListLimit);
+		const offset = query.offset ?? paginationConst.defaultOffset;
 		const where: Record<string, unknown> = { endpointId };
 		if (query.method) where.method = query.method;
 		if (query.status != null) where.responseStatus = query.status;
@@ -40,7 +40,7 @@ export class LogsService {
 			this.prismaService.requestLog.findMany({
 				where,
 				orderBy: { createdAt: "desc" },
-				take: Math.min(limit, Pagination.DefaultListLimit),
+				take: Math.min(limit, paginationConst.defaultListLimit),
 				skip: offset,
 			}),
 			this.prismaService.requestLog.count({ where }),

@@ -5,11 +5,16 @@ import { IsEmail, IsString, Length, Matches } from "class-validator";
 export class VerifyEmailDto implements VerifyEmail {
 	@ApiProperty({ example: "user@example.com" })
 	@IsEmail()
-	email!: string;
+	email: string;
 
 	@ApiProperty({ example: "123456", description: "6-digit code" })
 	@IsString()
 	@Length(6, 6)
 	@Matches(/^\d{6}$/)
-	code!: string;
+	code: string;
+
+	constructor(email: string, code: string) {
+		this.email = email;
+		this.code = code;
+	}
 }

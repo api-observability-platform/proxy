@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { EmailModule } from "../../core/email/email.module";
 import { PrismaModule } from "../../core/prisma/prisma.module";
-import { EmailModule } from "../email/email.module";
 import { AlertRulesService } from "./alert-rules.service";
 import { AlertThrottleService } from "./alert-throttle.service";
 import { NotificationChannelsService } from "./notification-channels.service";

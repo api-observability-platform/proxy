@@ -10,7 +10,7 @@ export class SlackService {
 			body: JSON.stringify({
 				text: message,
 			}),
-			signal: AbortSignal.timeout(outboundWebhookConstants.FETCH_TIMEOUT_MS),
+			signal: AbortSignal.timeout(outboundWebhookConstants.fetchTimeoutMs),
 		});
 		if (!res.ok) {
 			throw new Error(`Slack webhook error: ${res.status}`);
@@ -25,7 +25,7 @@ export class SlackService {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
-			signal: AbortSignal.timeout(outboundWebhookConstants.FETCH_TIMEOUT_MS),
+			signal: AbortSignal.timeout(outboundWebhookConstants.fetchTimeoutMs),
 		});
 		if (!res.ok) {
 			throw new Error(`Slack webhook error: ${res.status}`);

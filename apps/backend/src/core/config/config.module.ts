@@ -9,6 +9,7 @@ import { prismaRegister } from "./registers/prisma.register";
 import { proxyRegister } from "./registers/proxy.register";
 import { rateLimitRegister } from "./registers/rate-limit.register";
 import { redisRegister } from "./registers/redis.register";
+import { slugRegister } from "./registers/slug.register";
 import { swaggerRegister } from "./registers/swagger.register";
 
 @Module({
@@ -26,6 +27,7 @@ import { swaggerRegister } from "./registers/swagger.register";
 				emailRegister,
 				swaggerRegister,
 				proxyRegister,
+				slugRegister,
 			],
 			validationSchema: Joi.object({
 				NODE_ENV: Joi.string()

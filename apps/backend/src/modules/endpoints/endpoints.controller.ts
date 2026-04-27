@@ -28,7 +28,7 @@ import {
 	ApiTooManyRequestsResponse,
 	getSchemaPath,
 } from "@nestjs/swagger";
-import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { CurrentUserDecorator } from "../../common/decorators/current-user.decorator";
 import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { EndpointsService } from "./endpoints.service";
 
@@ -62,7 +62,7 @@ export class EndpointsController {
 		},
 	})
 	create(
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 		@Body() createEndpointDto: CreateEndpointDto,
 	): ReturnType<EndpointsService["create"]> {
 		return this.endpointsService.create(userId, createEndpointDto);
@@ -87,7 +87,7 @@ export class EndpointsController {
 		},
 	})
 	findAll(
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 		@Query() query: ListEndpointsQueryDto,
 	): ReturnType<EndpointsService["findAll"]> {
 		return this.endpointsService.findAll(userId, query);
@@ -126,7 +126,7 @@ export class EndpointsController {
 	})
 	findOne(
 		@Param("id") id: string,
-		@CurrentUser() user: CurrentUserPayload,
+		@CurrentUserDecorator() user: CurrentUserPayload,
 	): ReturnType<EndpointsService["findOne"]> {
 		return this.endpointsService.findOne(id, user);
 	}
@@ -165,7 +165,7 @@ export class EndpointsController {
 	})
 	update(
 		@Param("id") id: string,
-		@CurrentUser() user: CurrentUserPayload,
+		@CurrentUserDecorator() user: CurrentUserPayload,
 		@Body() updateEndpointDto: UpdateEndpointDto,
 	): ReturnType<EndpointsService["update"]> {
 		return this.endpointsService.update(id, user, updateEndpointDto);
@@ -204,7 +204,7 @@ export class EndpointsController {
 	})
 	remove(
 		@Param("id") id: string,
-		@CurrentUser() user: CurrentUserPayload,
+		@CurrentUserDecorator() user: CurrentUserPayload,
 	): ReturnType<EndpointsService["remove"]> {
 		return this.endpointsService.remove(id, user);
 	}

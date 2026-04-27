@@ -1,7 +1,7 @@
 export type {
-	AnalyticsBreakdownDto,
-	AnalyticsSummaryDto,
-	AnalyticsTimeseriesPointDto,
+	AnalyticsBreakdown,
+	AnalyticsSummary,
+	AnalyticsTimeseriesPoint,
 	AnalyticsTimeseriesQuery,
 	CreateEndpoint,
 	EndpointDto,
@@ -17,7 +17,7 @@ export type {
 	SignUp,
 	TransformRule,
 	UpdateEndpoint,
-	UserDto,
+	User,
 	VerifyEmail,
 } from "./types/types";
 export { ENDPOINT_PROTOCOLS } from "./types/types";

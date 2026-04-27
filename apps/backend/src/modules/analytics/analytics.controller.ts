@@ -1,4 +1,7 @@
-import type { AnalyticsTimeseriesQueryDto } from "./dto/analytics-timeseries-query.dto";
+import type { AnalyticsTimeseriesQueryDto } from "./dtos/analytics-timeseries-query.dto";
+import type { AnalyticsBreakdownRdo } from "./rdos/analytics-breakdown.rdo";
+import type { AnalyticsSummaryRdo } from "./rdos/analytics-summary.rdo";
+import type { AnalyticsTimeseriesPointRdo } from "./rdos/analytics-timeseries-point.rdo";
 import { Controller, Get, Inject, Param, Query } from "@nestjs/common";
 import {
 	ApiBearerAuth,
@@ -11,7 +14,7 @@ import {
 	ApiTooManyRequestsResponse,
 	getSchemaPath,
 } from "@nestjs/swagger";
-import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { CurrentUserDecorator } from "../../common/decorators/current-user.decorator";
 import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { AnalyticsService } from "./analytics.service";
 
@@ -56,8 +59,8 @@ export class AnalyticsController {
 	})
 	getSummary(
 		@Param("endpointId") endpointId: string,
-		@CurrentUser("id") userId: string,
-	): ReturnType<AnalyticsService["getSummary"]> {
+		@CurrentUserDecorator("id") userId: string,
+	): Promise<AnalyticsSummaryRdo> {
 		return this.analyticsService.getSummary(endpointId, userId);
 	}
 
@@ -92,12 +95,12 @@ export class AnalyticsController {
 	})
 	getTimeseries(
 		@Param("endpointId") endpointId: string,
-		@CurrentUser("id") userId: string,
-		@Query() query: AnalyticsTimeseriesQueryDto,
-	): ReturnType<AnalyticsService["getTimeseries"]> {
+		@CurrentUserDecorator("id") userId: string,
+		@Query() analyticsTimeseriesQueryDto: AnalyticsTimeseriesQueryDto,
+	): Promise<AnalyticsTimeseriesPointRdo[]> {
 		return this.analyticsService.getTimeseries(endpointId, userId, {
-			bucket: query.bucket ?? "hour",
-			limit: query.limit,
+			bucket: analyticsTimeseriesQueryDto.bucket ?? "hour",
+			limit: analyticsTimeseriesQueryDto.limit,
 		});
 	}
 
@@ -133,8 +136,8 @@ export class AnalyticsController {
 	})
 	getBreakdown(
 		@Param("endpointId") endpointId: string,
-		@CurrentUser("id") userId: string,
-	): ReturnType<AnalyticsService["getBreakdown"]> {
+		@CurrentUserDecorator("id") userId: string,
+	): Promise<AnalyticsBreakdownRdo> {
 		return this.analyticsService.getBreakdown(endpointId, userId);
 	}
 }

@@ -4,7 +4,7 @@ import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { ConfigKey } from "../../../common/constants/config-key.constant";
+import { configKeyConst } from "../../../common/consts/config-key.const";
 import { AuthService } from "../auth.service";
 
 @Injectable()
@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
 		@Inject(AuthService) private readonly authService: AuthService,
 		@Inject(ConfigService) readonly configService: ConfigService,
 	) {
-		const { secret } = configService.getOrThrow<JwtType>(ConfigKey.Jwt);
+		const { secret } = configService.getOrThrow<JwtType>(configKeyConst.jwt);
 
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

@@ -2,9 +2,9 @@ import type { Endpoint, Prisma } from "@prisma/generated/client";
 import type { RateLimitConfig, TransformRule } from "@proxy-server/shared";
 import type { EndpointDto, EndpointProtocol } from "./types/endpoints.type";
 
-function parseRateLimit(
+const parseRateLimit = (
 	value: Prisma.JsonValue | null,
-): RateLimitConfig | null {
+): RateLimitConfig | null => {
 	if (value === null || typeof value !== "object" || Array.isArray(value)) {
 		return null;
 	}
@@ -20,17 +20,17 @@ function parseRateLimit(
 		return { maxRequests, windowSeconds };
 	}
 	return null;
-}
+};
 
-function parseTransformRules(
+const parseTransformRules = (
 	value: Prisma.JsonValue | null,
-): TransformRule[] | null {
+): TransformRule[] | null => {
 	if (value === null) return null;
 	if (!Array.isArray(value)) return null;
 	return value as TransformRule[];
-}
+};
 
-export function mapEndpointToDto(endpoint: Endpoint): EndpointDto {
+export const mapEndpointToDto = (endpoint: Endpoint): EndpointDto => {
 	return {
 		id: endpoint.id,
 		name: endpoint.name,
@@ -42,4 +42,4 @@ export function mapEndpointToDto(endpoint: Endpoint): EndpointDto {
 		isActive: endpoint.isActive,
 		createdAt: endpoint.createdAt.toISOString(),
 	};
-}
+};

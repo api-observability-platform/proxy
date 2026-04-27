@@ -7,7 +7,7 @@ import {
 	Post,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Public } from "../../common/decorators/public.decorator";
+import { PublicDecorator } from "../../common/decorators/public.decorator";
 import { AlertThrottleService } from "../notifications/alert-throttle.service";
 
 type SlackInteractionPayload = {
@@ -35,7 +35,7 @@ export class IntegrationsController {
 		private readonly alertThrottleService: AlertThrottleService,
 	) {}
 
-	@Public()
+	@PublicDecorator()
 	@Post("slack/actions")
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: "Slack interaction payload (mute, etc.)" })
@@ -71,7 +71,7 @@ export class IntegrationsController {
 		return { ok: true };
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Post("telegram/webhook")
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: "Telegram bot updates (stub ack)" })
@@ -79,7 +79,7 @@ export class IntegrationsController {
 		return { ok: true };
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Post("slack/commands")
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: "Slack slash commands (stub)" })

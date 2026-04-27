@@ -1,11 +1,14 @@
 import type { PrismaType } from "../types/prisma.type.js";
 import { registerAs } from "@nestjs/config";
-import { ConfigKey } from "../../../common/constants/config-key.constant.js";
+import { configKeyConst } from "../../../common/consts/config-key.const.js";
 
-export const prismaRegister = registerAs(ConfigKey.Prisma, (): PrismaType => {
-	const url = process.env.POSTGRES_URL || "";
+export const prismaRegister = registerAs(
+	configKeyConst.prisma,
+	(): PrismaType => {
+		const url = process.env.POSTGRES_URL || "";
 
-	return {
-		url,
-	};
-});
+		return {
+			url,
+		};
+	},
+);

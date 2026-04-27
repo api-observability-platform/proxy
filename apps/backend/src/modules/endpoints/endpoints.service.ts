@@ -1,4 +1,5 @@
 import type { CurrentUserPayload } from "../../common/types/current-user-payload.type";
+import type { SlugType } from "../../core/config/types/slug.type";
 import type { CreateEndpointDto } from "./dto/create-endpoint.dto";
 import type { ListEndpointsQueryDto } from "./dto/list-endpoints-query.dto";
 import type { UpdateEndpointDto } from "./dto/update-endpoint.dto";
@@ -12,27 +13,42 @@ import {
 	Injectable,
 	NotFoundException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { type Endpoint, Prisma } from "@prisma/generated/client";
 import { customAlphabet } from "nanoid";
-import { Pagination } from "../../common/constants/pagination.constants";
+import { configKeyConst } from "../../common/consts/config-key.const";
+import { paginationConst } from "../../common/consts/pagination.const";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { mapEndpointToDto } from "./endpoint.mapper";
 
-const slugAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
-const SLUG_LENGTH = 10;
-const SLUG_MAX_ATTEMPTS = 5;
-const generateSlug = customAlphabet(slugAlphabet, SLUG_LENGTH);
-
 @Injectable()
 export class EndpointsService {
+	private readonly slugAlphabet: string = "";
+	private readonly slugLength: number = 0;
+	private readonly slugMaxAttempts: number = 0;
+
 	constructor(
 		@Inject(PrismaService) private readonly prismaService: PrismaService,
-	) {}
+		@Inject(ConfigService) readonly configService: ConfigService,
+	) {
+		const slugConfig = this.configService.getOrThrow<SlugType>(
+			configKeyConst.slug,
+		);
+
+		this.slugAlphabet = slugConfig.slugAlphabet;
+		this.slugLength = slugConfig.slugLength;
+		this.slugMaxAttempts = slugConfig.slugMaxAttempts;
+	}
+
+	private toJsonValue(value: unknown): Prisma.InputJsonValue {
+		return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+	}
 
 	async create(userId: string, dto: CreateEndpointDto): Promise<EndpointDto> {
+		const generateSlug = customAlphabet(this.slugAlphabet, this.slugLength);
 		let slug = generateSlug();
 		let attempts = 0;
-		while (attempts < SLUG_MAX_ATTEMPTS) {
+		while (attempts < this.slugMaxAttempts) {
 			const existing = await this.prismaService.endpoint.findUnique({
 				where: { slug },
 			});
@@ -47,10 +63,10 @@ export class EndpointsService {
 				slug,
 				targetUrl: dto.targetUrl,
 				...(dto.rateLimitConfig != null && {
-					rateLimitConfig: toJsonValue(dto.rateLimitConfig),
+					rateLimitConfig: this.toJsonValue(dto.rateLimitConfig),
 				}),
 				...(dto.transformRules != null && {
-					transformRules: toJsonValue(dto.transformRules),
+					transformRules: this.toJsonValue(dto.transformRules),
 				}),
 				isActive: dto.isActive ?? true,
 			},
@@ -62,10 +78,10 @@ export class EndpointsService {
 		userId: string,
 		query: ListEndpointsQueryDto,
 	): Promise<EndpointListResponseDto> {
-		const offset = query.offset ?? Pagination.DefaultOffset;
+		const offset = query.offset ?? paginationConst.defaultOffset;
 		const limit = Math.min(
-			query.limit ?? Pagination.DefaultListLimit,
-			Pagination.MaxListLimit,
+			query.limit ?? paginationConst.defaultListLimit,
+			paginationConst.maxListLimit,
 		);
 		const where = { userId };
 		const [items, total] = await Promise.all([
@@ -127,13 +143,13 @@ export class EndpointsService {
 					rateLimitConfig:
 						dto.rateLimitConfig === null
 							? Prisma.DbNull
-							: toJsonValue(dto.rateLimitConfig),
+							: this.toJsonValue(dto.rateLimitConfig),
 				}),
 				...(dto.transformRules !== undefined && {
 					transformRules:
 						dto.transformRules === null
 							? Prisma.DbNull
-							: toJsonValue(dto.transformRules),
+							: this.toJsonValue(dto.transformRules),
 				}),
 				...(dto.isActive !== undefined && { isActive: dto.isActive }),
 			},
@@ -151,8 +167,4 @@ export class EndpointsService {
 		});
 		return { success: true };
 	}
-}
-
-function toJsonValue(value: unknown): Prisma.InputJsonValue {
-	return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }

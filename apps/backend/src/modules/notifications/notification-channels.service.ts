@@ -2,7 +2,7 @@ import type { NotificationChannel } from "@prisma/generated/client";
 import type { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
 import type { CreateChannelDto } from "./dto/create-channel.dto";
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { Pagination } from "../../common/constants/pagination.constants";
+import { paginationConst } from "../../common/consts/pagination.const";
 import { PrismaService } from "../../core/prisma/prisma.service";
 
 @Injectable()
@@ -33,10 +33,10 @@ export class NotificationChannelsService {
 		limit: number;
 		offset: number;
 	}> {
-		const offset = query.offset ?? Pagination.DefaultOffset;
+		const offset = query.offset ?? paginationConst.defaultOffset;
 		const limit = Math.min(
-			query.limit ?? Pagination.DefaultListLimit,
-			Pagination.MaxListLimit,
+			query.limit ?? paginationConst.defaultListLimit,
+			paginationConst.maxListLimit,
 		);
 		const where = { userId, isActive: true };
 		const [items, total] = await Promise.all([

@@ -2,7 +2,7 @@ import type { RedisType } from "../../core/config/types/redis.type";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Redis from "ioredis";
-import { ConfigKey } from "../../common/constants/config-key.constant";
+import { configKeyConst } from "../../common/consts/config-key.const";
 import { alertThrottleConstants } from "./alert-throttle.constants";
 
 @Injectable()
@@ -13,7 +13,7 @@ export class AlertThrottleService {
 	private useMemoryOnly = false;
 
 	constructor(@Inject(ConfigService) readonly configService: ConfigService) {
-		const { url } = configService.getOrThrow<RedisType>(ConfigKey.Redis);
+		const { url } = configService.getOrThrow<RedisType>(configKeyConst.redis);
 		if (url.trim()) {
 			this.redis = new Redis(url, {
 				maxRetriesPerRequest: 1,
@@ -48,14 +48,14 @@ export class AlertThrottleService {
 		}
 		const last = this.memory.get(k);
 		if (!last) return false;
-		return Date.now() - last < alertThrottleConstants.COOLDOWN_MS;
+		return Date.now() - last < alertThrottleConstants.cooldownMs;
 	}
 
 	async markSent(endpointId: string, channelId: string): Promise<void> {
 		const k = this.key(endpointId, channelId);
 		if (this.redis && !this.useMemoryOnly) {
 			try {
-				await this.redis.set(k, "1", "PX", alertThrottleConstants.COOLDOWN_MS);
+				await this.redis.set(k, "1", "PX", alertThrottleConstants.cooldownMs);
 				return;
 			} catch {
 				this.useMemoryOnly = true;

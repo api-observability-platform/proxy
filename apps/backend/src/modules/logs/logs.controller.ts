@@ -23,7 +23,7 @@ import {
 	ApiTooManyRequestsResponse,
 	getSchemaPath,
 } from "@nestjs/swagger";
-import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { CurrentUserDecorator } from "../../common/decorators/current-user.decorator";
 import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { LogsService } from "./logs.service";
 
@@ -85,7 +85,7 @@ export class LogsController {
 	})
 	async findByEndpoint(
 		@Param("endpointId") endpointId: string,
-		@CurrentUser() user: CurrentUserPayload,
+		@CurrentUserDecorator() user: CurrentUserPayload,
 		@Query() query: LogsListQueryDto,
 	): ReturnType<LogsService["findByEndpoint"]> {
 		return this.logsService.findByEndpoint(endpointId, user.id, query);
@@ -124,7 +124,7 @@ export class LogsController {
 	})
 	async findOne(
 		@Param("id") id: string,
-		@CurrentUser() user: CurrentUserPayload,
+		@CurrentUserDecorator() user: CurrentUserPayload,
 	): ReturnType<LogsService["findOne"]> {
 		return this.logsService.findOne(id, user.id);
 	}
@@ -142,7 +142,7 @@ export class LogsController {
 	})
 	replay(
 		@Param("id") id: string,
-		@CurrentUser() user: CurrentUserPayload,
+		@CurrentUserDecorator() user: CurrentUserPayload,
 	): ReturnType<LogsService["replay"]> {
 		return this.logsService.replay(id, user.id);
 	}

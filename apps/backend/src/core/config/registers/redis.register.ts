@@ -1,8 +1,8 @@
 import type { RedisType } from "../types/redis.type";
 import { registerAs } from "@nestjs/config";
-import { ConfigKey } from "../../../common/constants/config-key.constant";
+import { configKeyConst } from "../../../common/consts/config-key.const";
 
-export const redisRegister = registerAs(ConfigKey.Redis, (): RedisType => {
+export const redisRegister = registerAs(configKeyConst.redis, (): RedisType => {
 	const url = process.env.REDIS_URL || "";
 
 	return { url };

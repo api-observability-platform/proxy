@@ -8,7 +8,6 @@ import { CorrelationIdMiddleware } from "./common/middleware/correlation-id.midd
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt-auth.guard";
-import { EmailModule } from "./modules/email/email.module";
 import { EndpointsModule } from "./modules/endpoints/endpoints.module";
 import { HealthModule } from "./modules/health/health.module";
 import { IntegrationsModule } from "./modules/integrations/integrations.module";
@@ -21,7 +20,6 @@ import { ProxyModule } from "./proxy/proxy.module";
 	imports: [
 		AnalyticsModule,
 		AuthModule,
-		EmailModule,
 		EndpointsModule,
 		HealthModule,
 		IntegrationsModule,

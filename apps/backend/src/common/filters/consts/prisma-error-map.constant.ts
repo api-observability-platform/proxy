@@ -1,6 +1,6 @@
 import { HttpStatus } from "@nestjs/common";
 
-export const PrismaErrorMap: Record<string, HttpStatus> = {
+export const prismaErrorMapConst: Record<string, HttpStatus> = {
 	p2000: HttpStatus.BAD_REQUEST,
 	p2001: HttpStatus.NOT_FOUND,
 	p2002: HttpStatus.CONFLICT,

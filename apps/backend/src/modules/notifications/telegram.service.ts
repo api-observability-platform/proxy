@@ -21,7 +21,7 @@ export class TelegramService {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(body),
-			signal: AbortSignal.timeout(outboundWebhookConstants.FETCH_TIMEOUT_MS),
+			signal: AbortSignal.timeout(outboundWebhookConstants.fetchTimeoutMs),
 		});
 		if (!res.ok) {
 			throw new Error(`Telegram API error: ${res.status}`);

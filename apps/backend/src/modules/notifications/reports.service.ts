@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { EmailService } from "../../core/email/email.service";
 import { PrismaService } from "../../core/prisma/prisma.service";
-import { EmailService } from "../email/email.service";
 import { SlackService } from "./slack.service";
 import { TelegramService } from "./telegram.service";
 

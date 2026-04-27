@@ -6,11 +6,11 @@ import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { nanoid } from "nanoid";
-import { ConfigKey } from "../../common/constants/config-key.constant";
+import { configKeyConst } from "../../common/consts/config-key.const";
 import { PrismaService } from "../../core/prisma/prisma.service";
-import { RefreshTokenNanoidLength } from "./constsants/refresh-token-nanoid-length.constant";
-import { parseDurationToMsUtil } from "./utils/duration.util";
-import { hashOpaqueTokenUtil } from "./utils/token-hash.util";
+import { authConstants } from "./auth.constants";
+import { parseDurationToMs } from "./utils/duration.util";
+import { hashOpaqueToken } from "./utils/token-hash.util";
 
 @Injectable()
 export class TokenService {
@@ -22,21 +22,20 @@ export class TokenService {
 		@Inject(ConfigService) readonly configService: ConfigService,
 	) {
 		const { refreshExpiresIn } = configService.getOrThrow<JwtType>(
-			ConfigKey.Jwt,
+			configKeyConst.jwt,
 		);
-
 		this.refreshExpiresIn = refreshExpiresIn;
 	}
 
 	private get refreshExpiresMs(): number {
-		return parseDurationToMsUtil(this.refreshExpiresIn);
+		return parseDurationToMs(this.refreshExpiresIn);
 	}
 
 	async validateRefreshToken(rawToken: string): Promise<{
 		tokenId: string;
 		user: CurrentUserPayload;
 	}> {
-		const tokenHash = hashOpaqueTokenUtil(rawToken);
+		const tokenHash = hashOpaqueToken(rawToken);
 		const row = await this.prismaService.refreshToken.findUnique({
 			where: { tokenHash },
 			include: {
@@ -81,7 +80,7 @@ export class TokenService {
 
 	async logout(rawToken: string | undefined): Promise<void> {
 		if (!rawToken) return;
-		const tokenHash = hashOpaqueTokenUtil(rawToken);
+		const tokenHash = hashOpaqueToken(rawToken);
 		await this.prismaService.refreshToken.updateMany({
 			where: { tokenHash, isRevoked: false },
 			data: { isRevoked: true },
@@ -106,8 +105,8 @@ export class TokenService {
 	): Promise<AuthResponseType & { refreshToken: string }> {
 		const payload: JwtPayloadType = { sub: user.id, email: user.email };
 		const accessToken = this.jwtService.sign(payload);
-		const rawRefresh = nanoid(RefreshTokenNanoidLength);
-		const tokenHash = hashOpaqueTokenUtil(rawRefresh);
+		const rawRefresh = nanoid(authConstants.refresh.tokenNanoidLength);
+		const tokenHash = hashOpaqueToken(rawRefresh);
 		const expiresAt = new Date(Date.now() + this.refreshExpiresMs);
 		await this.prismaService.refreshToken.create({
 			data: {

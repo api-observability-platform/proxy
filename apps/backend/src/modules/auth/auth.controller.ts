@@ -35,18 +35,17 @@ import {
 	getSchemaPath,
 } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
-import { ConfigKey } from "../../common/constants/config-key.constant";
-import { Environments } from "../../common/constants/environments.constant";
-import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { Public } from "../../common/decorators/public.decorator";
+import { configKeyConst } from "../../common/consts/config-key.const";
+import { environmentsConst } from "../../common/consts/environments.const";
+import { CurrentUserDecorator } from "../../common/decorators/current-user.decorator";
+import { PublicDecorator } from "../../common/decorators/public.decorator";
 import { AuthResponseSchema } from "../../common/swagger/schemas/auth-response.schema";
 import { AuthUserSchema } from "../../common/swagger/schemas/auth-user.schema";
 import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { LogoutResponseSchema } from "../../common/swagger/schemas/logout-response.schema";
 import { MessageResponseSchema } from "../../common/swagger/schemas/message-response.schema";
+import { authConstants } from "./auth.constants";
 import { AuthService } from "./auth.service";
-import { AuthThrottle } from "./constsants/auth-throttle.constant";
-import { RefreshCookieName } from "./constsants/refresh-cookie.constant";
 import { ForgotPasswordDto } from "./dtos/forgot-password.dto";
 import { ResendVerificationDto } from "./dtos/resend-verification.dto";
 import { ResetPasswordDto } from "./dtos/reset-password.dto";
@@ -54,7 +53,7 @@ import { SignInDto } from "./dtos/sign-in.dto";
 import { SignUpDto } from "./dtos/sign-up.dto";
 import { VerifyEmailDto } from "./dtos/verify-email.dto";
 import { RefreshAuthGuard } from "./guards/refresh-auth.guard";
-import { parseDurationToMsUtil } from "./utils/duration.util";
+import { parseDurationToMs } from "./utils/duration.util";
 
 @ApiTags("Auth")
 @ApiExtraModels(
@@ -74,23 +73,21 @@ export class AuthController {
 		@Inject(ConfigService) readonly configService: ConfigService,
 	) {
 		const { nodeEnv } = configService.getOrThrow<EnvironmentType>(
-			ConfigKey.Environment,
+			configKeyConst.environment,
 		);
-		this.isProduction = nodeEnv === Environments.Production;
-
+		this.isProduction = nodeEnv === environmentsConst.production;
 		const { refreshExpiresIn } = configService.getOrThrow<JwtType>(
-			ConfigKey.Jwt,
+			configKeyConst.jwt,
 		);
-
 		this.refreshExpiresIn = refreshExpiresIn;
 	}
 
 	private refreshCookieMaxAgeMs(): number {
-		return parseDurationToMsUtil(this.refreshExpiresIn);
+		return parseDurationToMs(this.refreshExpiresIn);
 	}
 
 	private setRefreshCookie(res: Response, rawRefresh: string): void {
-		res.cookie(RefreshCookieName, rawRefresh, {
+		res.cookie(authConstants.refresh.cookieName, rawRefresh, {
 			httpOnly: true,
 			secure: this.isProduction,
 			sameSite: "lax",
@@ -100,7 +97,7 @@ export class AuthController {
 	}
 
 	private clearRefreshCookie(res: Response): void {
-		res.clearCookie(RefreshCookieName, {
+		res.clearCookie(authConstants.refresh.cookieName, {
 			path: "/",
 			httpOnly: true,
 			sameSite: "lax",
@@ -119,11 +116,11 @@ export class AuthController {
 		};
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Throttle({
 		default: {
-			limit: AuthThrottle.SignUp.Limit,
-			ttl: AuthThrottle.SignUp.TtlMs,
+			limit: authConstants.throttle.signUp.limit,
+			ttl: authConstants.throttle.signUp.ttlMs,
 		},
 	})
 	@HttpCode(HttpStatus.CREATED)
@@ -157,15 +154,15 @@ export class AuthController {
 		description: "Unexpected server error while creating the user.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public signUp(@Body() signUpDto: SignUpDto): Promise<{ message: string }> {
+	signUp(@Body() signUpDto: SignUpDto): Promise<{ message: string }> {
 		return this.authService.signUp(signUpDto);
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Throttle({
 		default: {
-			limit: AuthThrottle.VerifyEmail.Limit,
-			ttl: AuthThrottle.VerifyEmail.TtlMs,
+			limit: authConstants.throttle.verifyEmail.limit,
+			ttl: authConstants.throttle.verifyEmail.ttlMs,
 		},
 	})
 	@HttpCode(HttpStatus.OK)
@@ -190,19 +187,19 @@ export class AuthController {
 		description: "Unknown email, wrong or expired code, or missing code data.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public async verifyEmail(
-		@Body() dto: VerifyEmailDto,
+	async verifyEmail(
+		@Body() verifyEmailDto: VerifyEmailDto,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<AuthResponseType> {
-		const result = await this.authService.verifyEmail(dto.email, dto.code);
+		const result = await this.authService.verifyEmail(verifyEmailDto);
 		return this.bodyAuth(res, result);
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Throttle({
 		default: {
-			limit: AuthThrottle.ResendVerification.Limit,
-			ttl: AuthThrottle.ResendVerification.TtlMs,
+			limit: authConstants.throttle.resendVerification.limit,
+			ttl: authConstants.throttle.resendVerification.ttlMs,
 		},
 	})
 	@HttpCode(HttpStatus.OK)
@@ -227,17 +224,17 @@ export class AuthController {
 		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public resendVerification(
-		@Body() dto: ResendVerificationDto,
+	resendVerification(
+		@Body() resendVerificationDto: ResendVerificationDto,
 	): Promise<{ message: string }> {
-		return this.authService.resendVerification(dto.email);
+		return this.authService.resendVerification(resendVerificationDto);
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Throttle({
 		default: {
-			limit: AuthThrottle.SignIn.Limit,
-			ttl: AuthThrottle.SignIn.TtlMs,
+			limit: authConstants.throttle.signIn.limit,
+			ttl: authConstants.throttle.signIn.ttlMs,
 		},
 	})
 	@HttpCode(HttpStatus.OK)
@@ -274,7 +271,7 @@ export class AuthController {
 		description: "Unexpected server error during sign-in.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public async signIn(
+	async signIn(
 		@Body() signInDto: SignInDto,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<AuthResponseType> {
@@ -282,11 +279,11 @@ export class AuthController {
 		return this.bodyAuth(res, result);
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Throttle({
 		default: {
-			limit: AuthThrottle.ForgotPassword.Limit,
-			ttl: AuthThrottle.ForgotPassword.TtlMs,
+			limit: authConstants.throttle.forgotPassword.limit,
+			ttl: authConstants.throttle.forgotPassword.ttlMs,
 		},
 	})
 	@HttpCode(HttpStatus.OK)
@@ -311,17 +308,17 @@ export class AuthController {
 		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public forgotPassword(
-		@Body() dto: ForgotPasswordDto,
+	forgotPassword(
+		@Body() forgotPasswordDto: ForgotPasswordDto,
 	): Promise<{ message: string }> {
-		return this.authService.forgotPassword(dto.email);
+		return this.authService.forgotPassword(forgotPasswordDto);
 	}
 
-	@Public()
+	@PublicDecorator()
 	@Throttle({
 		default: {
-			limit: AuthThrottle.ResetPassword.Limit,
-			ttl: AuthThrottle.ResetPassword.TtlMs,
+			limit: authConstants.throttle.resetPassword.limit,
+			ttl: authConstants.throttle.resetPassword.ttlMs,
 		},
 	})
 	@HttpCode(HttpStatus.OK)
@@ -351,13 +348,13 @@ export class AuthController {
 		description: "Rate limit exceeded for this endpoint.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public resetPassword(
-		@Body() dto: ResetPasswordDto,
+	resetPassword(
+		@Body() resetPasswordDto: ResetPasswordDto,
 	): Promise<{ message: string }> {
-		return this.authService.resetPassword(dto.email, dto.code, dto.newPassword);
+		return this.authService.resetPassword(resetPasswordDto);
 	}
 
-	@Public()
+	@PublicDecorator()
 	@UseGuards(RefreshAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	@Post("refresh")
@@ -377,7 +374,7 @@ export class AuthController {
 			"Missing cookie, invalid or revoked token, expired session, or unverified email on record.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public async refresh(
+	async refresh(
 		@Req() req: Request & RequestWithRefreshAuthType,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<AuthResponseType> {
@@ -406,11 +403,13 @@ export class AuthController {
 		description: "Missing or invalid access token.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public async logout(
+	async logout(
 		@Req() req: Request,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<{ success: boolean }> {
-		const raw = req.cookies?.[RefreshCookieName] as string | undefined;
+		const raw = req.cookies?.[authConstants.refresh.cookieName] as
+			| string
+			| undefined;
 		await this.authService.logout(raw);
 		this.clearRefreshCookie(res);
 		return { success: true };
@@ -432,8 +431,8 @@ export class AuthController {
 			"Missing, invalid, or expired access token; or user no longer exists.",
 		schema: { $ref: getSchemaPath(ErrorResponseSchema) },
 	})
-	public me(
-		@CurrentUser() user: CurrentUserPayload,
+	me(
+		@CurrentUserDecorator() user: CurrentUserPayload,
 	): Promise<CurrentUserPayload> {
 		return this.authService.me(user.id);
 	}

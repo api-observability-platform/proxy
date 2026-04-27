@@ -9,7 +9,7 @@ export class SignUpDto implements SignUp {
 		format: "email",
 	})
 	@IsEmail()
-	email!: string;
+	email: string;
 
 	@ApiProperty({
 		description: "Password (minimum 8 characters)",
@@ -18,7 +18,7 @@ export class SignUpDto implements SignUp {
 	})
 	@IsString()
 	@MinLength(8, { message: "Password must be at least 8 characters" })
-	password!: string;
+	password: string;
 
 	@ApiProperty({
 		description: "Optional display name",
@@ -27,5 +27,11 @@ export class SignUpDto implements SignUp {
 	})
 	@IsOptional()
 	@IsString()
-	name!: string | null;
+	name: string | null;
+
+	constructor(email: string, password: string, name: string | null) {
+		this.email = email;
+		this.password = password;
+		this.name = name;
+	}
 }

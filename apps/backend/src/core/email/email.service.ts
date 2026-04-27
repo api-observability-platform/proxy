@@ -1,9 +1,9 @@
 import type { Transporter } from "nodemailer";
-import type { EmailType } from "../../core/config/types/email.type";
+import type { EmailType } from "../config/types/email.type";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import * as nodemailer from "nodemailer";
-import { ConfigKey } from "../../common/constants/config-key.constant";
+import { createTransport } from "nodemailer";
+import { configKeyConst } from "../../common/consts/config-key.const";
 
 @Injectable()
 export class EmailService {
@@ -14,12 +14,10 @@ export class EmailService {
 
 	constructor(@Inject(ConfigService) readonly configService: ConfigService) {
 		const { host, port, user, pass, from, logOtpOnSmtpFailure } =
-			configService.getOrThrow<EmailType>(ConfigKey.Email);
-
+			configService.getOrThrow<EmailType>(configKeyConst.email);
 		this.logOtpOnSmtpFailure = logOtpOnSmtpFailure;
 		this.from = from;
-
-		this.transporter = nodemailer.createTransport({
+		this.transporter = createTransport({
 			host,
 			port,
 			secure: false,

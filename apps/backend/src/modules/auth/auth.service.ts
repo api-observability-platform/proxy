@@ -1,6 +1,12 @@
+import type {
+	ForgotPassword,
+	ResendVerification,
+	ResetPassword,
+	SignIn,
+	SignUp,
+	VerifyEmail,
+} from "@proxy-server/shared";
 import type { CurrentUserPayload } from "../../common/types/current-user-payload.type";
-import type { SignInDto } from "./dtos/sign-in.dto";
-import type { SignUpDto } from "./dtos/sign-up.dto";
 import type { AuthResponseType } from "./types/auth-response.type";
 import {
 	BadRequestException,
@@ -8,21 +14,18 @@ import {
 	ForbiddenException,
 	Inject,
 	Injectable,
-	Logger,
 	UnauthorizedException,
 } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
+import { EmailService } from "../../core/email/email.service";
 import { PrismaService } from "../../core/prisma/prisma.service";
-import { EmailService } from "../email/email.service";
-import { AuthCrypto } from "./constsants/auth-crypto.constant";
+import { authConstants } from "./auth.constants";
 import { PasswordResetService } from "./password-reset.service";
 import { TokenService } from "./token.service";
-import { generateSixDigitCodeUtil } from "./utils/auth-code.util";
+import { generateSixDigitCode } from "./utils/auth-code.util";
 
 @Injectable()
 export class AuthService {
-	private readonly logger = new Logger(AuthService.name);
-
 	constructor(
 		@Inject(PrismaService) private readonly prismaService: PrismaService,
 		@Inject(EmailService) private readonly emailService: EmailService,
@@ -31,41 +34,36 @@ export class AuthService {
 		private readonly passwordResetService: PasswordResetService,
 	) {}
 
-	async signUp(signUpDto: SignUpDto): Promise<{ message: string }> {
-		const existing = await this.prismaService.user.findUnique({
-			where: { email: signUpDto.email },
+	async signUp(signUp: SignUp): Promise<{ message: string }> {
+		const user = await this.prismaService.user.findUnique({
+			where: { email: signUp.email },
 		});
-		if (existing) {
+		if (user) {
 			throw new ConflictException("User with this email already exists");
 		}
-
 		const passwordHash = await bcrypt.hash(
-			signUpDto.password,
-			AuthCrypto.SaltRounds,
+			signUp.password,
+			authConstants.crypto.saltRounds,
 		);
-
-		const plainCode = generateSixDigitCodeUtil();
-
+		const plainCode = generateSixDigitCode();
 		const verificationCodeHash = await bcrypt.hash(
 			plainCode,
-			AuthCrypto.SaltRounds,
+			authConstants.crypto.saltRounds,
 		);
-
-		const verificationExpiresAt = new Date(Date.now() + AuthCrypto.CodeTtlMs);
-
+		const verificationExpiresAt = new Date(
+			Date.now() + authConstants.crypto.codeTtlMs,
+		);
 		await this.prismaService.user.create({
 			data: {
-				email: signUpDto.email,
+				email: signUp.email,
 				passwordHash,
-				name: signUpDto.name || null,
+				name: signUp.name || null,
 				isEmailVerified: false,
 				verificationCodeHash,
 				verificationExpiresAt,
 			},
 		});
-
-		await this.emailService.sendVerificationCode(signUpDto.email, plainCode);
-
+		await this.emailService.sendVerificationCode(signUp.email, plainCode);
 		return {
 			message:
 				"Registration successful. Check your email for a verification code.",
@@ -73,12 +71,10 @@ export class AuthService {
 	}
 
 	async verifyEmail(
-		email: string,
-		code: string,
+		verifyEmail: VerifyEmail,
 	): Promise<AuthResponseType & { refreshToken: string }> {
-		const emailLower = email.toLowerCase();
 		const user = await this.prismaService.user.findUnique({
-			where: { email: emailLower },
+			where: { email: verifyEmail.email },
 		});
 		if (!user) {
 			throw new UnauthorizedException("Invalid email or code");
@@ -93,8 +89,11 @@ export class AuthService {
 		) {
 			throw new UnauthorizedException("Invalid or expired verification code");
 		}
-		const ok = await bcrypt.compare(code, user.verificationCodeHash);
-		if (!ok) {
+		const passwordsMatched = await bcrypt.compare(
+			verifyEmail.code,
+			user.verificationCodeHash,
+		);
+		if (passwordsMatched) {
 			throw new UnauthorizedException("Invalid or expired verification code");
 		}
 		await this.prismaService.user.update({
@@ -108,10 +107,11 @@ export class AuthService {
 		return this.tokenService.issueTokensForUserId(user.id);
 	}
 
-	async resendVerification(email: string): Promise<{ message: string }> {
-		const emailLower = email.toLowerCase();
+	async resendVerification(
+		resendVerification: ResendVerification,
+	): Promise<{ message: string }> {
 		const user = await this.prismaService.user.findUnique({
-			where: { email: emailLower },
+			where: { email: resendVerification.email },
 		});
 		if (!user) {
 			return { message: "If an account exists, a code was sent." };
@@ -119,37 +119,41 @@ export class AuthService {
 		if (user.isEmailVerified) {
 			throw new BadRequestException("Email is already verified");
 		}
-		const plainCode = generateSixDigitCodeUtil();
+		const plainCode = generateSixDigitCode();
 		const verificationCodeHash = await bcrypt.hash(
 			plainCode,
-			AuthCrypto.SaltRounds,
+			authConstants.crypto.saltRounds,
 		);
 		await this.prismaService.user.update({
 			where: { id: user.id },
 			data: {
 				verificationCodeHash,
-				verificationExpiresAt: new Date(Date.now() + AuthCrypto.CodeTtlMs),
+				verificationExpiresAt: new Date(
+					Date.now() + authConstants.crypto.codeTtlMs,
+				),
 			},
 		});
-		await this.emailService
-			.sendVerificationCode(emailLower, plainCode)
-			.catch((e) => {
-				this.logger.error(`Failed to send verification email: ${e}`);
-			});
+		await this.emailService.sendVerificationCode(
+			resendVerification.email,
+			plainCode,
+		);
 		return { message: "If an account exists, a code was sent." };
 	}
 
 	async signIn(
-		signInDto: SignInDto,
+		signIn: SignIn,
 	): Promise<AuthResponseType & { refreshToken: string }> {
 		const user = await this.prismaService.user.findUnique({
-			where: { email: signInDto.email.toLowerCase() },
+			where: { email: signIn.email },
 		});
 		if (!user) {
 			throw new UnauthorizedException("Invalid email or password");
 		}
-		const valid = await bcrypt.compare(signInDto.password, user.passwordHash);
-		if (!valid) {
+		const passwordsMatched = await bcrypt.compare(
+			signIn.password,
+			user.passwordHash,
+		);
+		if (!passwordsMatched) {
 			throw new UnauthorizedException("Invalid email or password");
 		}
 		if (!user.isEmailVerified) {
@@ -168,7 +172,6 @@ export class AuthService {
 			select: { id: true, email: true, name: true },
 		});
 	}
-
 	async me(userId: string): Promise<CurrentUserPayload> {
 		const user = await this.validateUserById(userId);
 		if (!user) {
@@ -194,15 +197,19 @@ export class AuthService {
 		return this.tokenService.logout(rawToken);
 	}
 
-	async forgotPassword(email: string): Promise<{ message: string }> {
-		return this.passwordResetService.forgotPassword(email);
+	async forgotPassword(
+		forgotPassword: ForgotPassword,
+	): Promise<{ message: string }> {
+		return this.passwordResetService.forgotPassword(forgotPassword.email);
 	}
 
 	async resetPassword(
-		email: string,
-		code: string,
-		newPassword: string,
+		resetPassword: ResetPassword,
 	): Promise<{ message: string }> {
-		return this.passwordResetService.resetPassword(email, code, newPassword);
+		return this.passwordResetService.resetPassword(
+			resetPassword.email,
+			resetPassword.code,
+			resetPassword.newPassword,
+		);
 	}
 }

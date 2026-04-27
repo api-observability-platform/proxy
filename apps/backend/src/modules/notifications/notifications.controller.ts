@@ -27,7 +27,7 @@ import {
 	ApiTooManyRequestsResponse,
 	getSchemaPath,
 } from "@nestjs/swagger";
-import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { CurrentUserDecorator } from "../../common/decorators/current-user.decorator";
 import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { AlertRulesService } from "./alert-rules.service";
 import { NotificationChannelsService } from "./notification-channels.service";
@@ -66,7 +66,7 @@ export class NotificationsController {
 		},
 	})
 	createChannel(
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 		@Body() dto: CreateChannelDto,
 	): ReturnType<NotificationChannelsService["create"]> {
 		return this.notificationChannelsService.create(userId, dto);
@@ -91,7 +91,7 @@ export class NotificationsController {
 		},
 	})
 	listChannels(
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 		@Query() query: PaginationQueryDto,
 	): ReturnType<NotificationChannelsService["findAll"]> {
 		return this.notificationChannelsService.findAll(userId, query);
@@ -125,7 +125,7 @@ export class NotificationsController {
 	})
 	deleteChannel(
 		@Param("id") id: string,
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 	): ReturnType<NotificationChannelsService["remove"]> {
 		return this.notificationChannelsService.remove(id, userId);
 	}
@@ -157,7 +157,7 @@ export class NotificationsController {
 		},
 	})
 	createAlertRule(
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 		@Body() dto: CreateAlertRuleDto,
 	): ReturnType<AlertRulesService["create"]> {
 		return this.alertRulesService.create(userId, dto);
@@ -194,7 +194,7 @@ export class NotificationsController {
 	})
 	getAlertRules(
 		@Param("endpointId") endpointId: string,
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 		@Query() query: PaginationQueryDto,
 	): ReturnType<AlertRulesService["findByEndpoint"]> {
 		return this.alertRulesService.findByEndpoint(endpointId, userId, query);
@@ -227,7 +227,7 @@ export class NotificationsController {
 	})
 	deleteAlertRule(
 		@Param("id") id: string,
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 	): ReturnType<AlertRulesService["remove"]> {
 		return this.alertRulesService.remove(id, userId);
 	}
@@ -236,7 +236,7 @@ export class NotificationsController {
 	@HttpCode(HttpStatus.CREATED)
 	@ApiOperation({ summary: "Create digest schedule" })
 	createReportSchedule(
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 		@Body() dto: CreateReportScheduleDto,
 	): ReturnType<ReportSchedulesService["create"]> {
 		return this.reportSchedulesService.create(userId, dto);
@@ -245,7 +245,7 @@ export class NotificationsController {
 	@Get("report-schedules")
 	@ApiOperation({ summary: "List digest schedules" })
 	listReportSchedules(
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 	): ReturnType<ReportSchedulesService["list"]> {
 		return this.reportSchedulesService.list(userId);
 	}
@@ -254,7 +254,7 @@ export class NotificationsController {
 	@ApiOperation({ summary: "Delete digest schedule" })
 	deleteReportSchedule(
 		@Param("id") id: string,
-		@CurrentUser("id") userId: string,
+		@CurrentUserDecorator("id") userId: string,
 	): ReturnType<ReportSchedulesService["remove"]> {
 		return this.reportSchedulesService.remove(id, userId);
 	}

@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
+import { EmailModule } from "../../core/email/email.module";
 import { JwtModule } from "../../core/jwt/jwt.module";
 import { PassportModule } from "../../core/passport/passport.module";
 import { PrismaModule } from "../../core/prisma/prisma.module";
 import { RateLimitModule } from "../../core/rate-limit/rate-limit.module";
-import { EmailModule } from "../email/email.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";

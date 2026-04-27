@@ -8,7 +8,7 @@ import {
 	MaxLength,
 	Min,
 } from "class-validator";
-import { Pagination } from "../../../common/constants/pagination.constants";
+import { paginationConst } from "../../../common/consts/pagination.const";
 
 export class LogsListQueryDto {
 	@ApiPropertyOptional({ description: "Max results", default: 50 })
@@ -16,14 +16,14 @@ export class LogsListQueryDto {
 	@Type(() => Number)
 	@IsInt()
 	@Min(1)
-	@Max(Pagination.MaxListLimit)
+	@Max(paginationConst.maxListLimit)
 	limit?: number;
 
 	@ApiPropertyOptional({ description: "Pagination offset", default: 0 })
 	@IsOptional()
 	@Type(() => Number)
 	@IsInt()
-	@Min(Pagination.DefaultOffset)
+	@Min(paginationConst.defaultOffset)
 	offset?: number;
 
 	@ApiPropertyOptional({ description: "Filter by HTTP method" })

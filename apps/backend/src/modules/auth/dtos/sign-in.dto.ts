@@ -9,7 +9,7 @@ export class SignInDto implements SignIn {
 		format: "email",
 	})
 	@IsEmail()
-	email!: string;
+	email: string;
 
 	@ApiProperty({
 		description: "User password",
@@ -17,5 +17,10 @@ export class SignInDto implements SignIn {
 	})
 	@IsString()
 	@MinLength(1, { message: "Password is required" })
-	password!: string;
+	password: string;
+
+	constructor(email: string, password: string) {
+		this.email = email;
+		this.password = password;
+	}
 }

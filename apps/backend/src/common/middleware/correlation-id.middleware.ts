@@ -1,12 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import { randomUUID } from "node:crypto";
 import { Injectable, type NestMiddleware } from "@nestjs/common";
-import { HeaderConstant } from "./constants/header.constant";
+import { correlationId } from "./correlation-id.constant";
 
 @Injectable()
 export class CorrelationIdMiddleware implements NestMiddleware {
 	use(req: Request, res: Response, next: NextFunction): void {
-		const incoming = req.headers[HeaderConstant];
+		const incoming = req.headers[correlationId];
 		const id =
 			typeof incoming === "string" && incoming.length > 0
 				? incoming

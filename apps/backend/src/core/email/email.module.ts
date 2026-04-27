@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule } from "../config/config.module";
 import { EmailService } from "./email.service";
 
 @Module({

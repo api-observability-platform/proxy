@@ -1,4 +1,4 @@
-import type { RateLimitType } from "../config/types/rate-limiting.type";
+import type { RateLimitType } from "../config/types/rate-limit.type";
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
@@ -6,7 +6,7 @@ import {
 	ThrottlerModule as CoreThrottlerModule,
 	ThrottlerGuard,
 } from "@nestjs/throttler";
-import { ConfigKey } from "../../common/constants/config-key.constant";
+import { configKeyConst } from "../../common/consts/config-key.const";
 import { ConfigModule } from "../config/config.module";
 
 @Module({
@@ -16,7 +16,7 @@ import { ConfigModule } from "../config/config.module";
 			imports: [ConfigModule],
 			useFactory: (configService: ConfigService) => {
 				const { ttl, limit } = configService.getOrThrow<RateLimitType>(
-					ConfigKey.RateLimit,
+					configKeyConst.rateLimit,
 				);
 
 				return [
