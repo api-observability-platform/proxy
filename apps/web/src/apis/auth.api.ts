@@ -4,7 +4,7 @@ import type {
 	ResetPassword,
 	SignIn,
 	SignUp,
-	UserDto,
+	User,
 	VerifyEmail,
 } from "@proxy-server/shared";
 import { type HttpClient, httpClient } from "./http-client";
@@ -20,8 +20,8 @@ class AuthApi {
 		});
 	}
 
-	signIn(data: SignIn): Promise<{ accessToken: string; user: UserDto }> {
-		return this.http.request<{ accessToken: string; user: UserDto }>(
+	signIn(data: SignIn): Promise<{ accessToken: string; user: User }> {
+		return this.http.request<{ accessToken: string; user: User }>(
 			"/auth/sign-in",
 			{
 				method: "POST",
@@ -30,10 +30,8 @@ class AuthApi {
 		);
 	}
 
-	verifyEmail(
-		data: VerifyEmail,
-	): Promise<{ accessToken: string; user: UserDto }> {
-		return this.http.request<{ accessToken: string; user: UserDto }>(
+	verifyEmail(data: VerifyEmail): Promise<{ accessToken: string; user: User }> {
+		return this.http.request<{ accessToken: string; user: User }>(
 			"/auth/verify-email",
 			{
 				method: "POST",
@@ -64,7 +62,7 @@ class AuthApi {
 	}
 
 	me() {
-		return this.http.request<UserDto>("/auth/me");
+		return this.http.request<User>("/auth/me");
 	}
 
 	async logout(accessToken: string | null) {

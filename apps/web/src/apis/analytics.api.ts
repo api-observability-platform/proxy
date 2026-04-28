@@ -1,7 +1,7 @@
 import type {
-	AnalyticsBreakdownDto,
-	AnalyticsSummaryDto,
-	AnalyticsTimeseriesPointDto,
+	AnalyticsBreakdown,
+	AnalyticsSummary,
+	AnalyticsTimeseriesPoint,
 } from "@proxy-server/shared";
 import type { HttpClient } from "./http-client";
 import { httpClient } from "./http-client";
@@ -10,7 +10,7 @@ class AnalyticsApi {
 	constructor(private readonly http: HttpClient) {}
 
 	summary(endpointId: string) {
-		return this.http.request<AnalyticsSummaryDto>(
+		return this.http.request<AnalyticsSummary>(
 			`/analytics/${endpointId}/summary`,
 		);
 	}
@@ -23,13 +23,13 @@ class AnalyticsApi {
 		if (params?.bucket) search.set("bucket", params.bucket);
 		if (params?.limit) search.set("limit", String(params.limit));
 		const q = search.toString();
-		return this.http.request<AnalyticsTimeseriesPointDto[]>(
+		return this.http.request<AnalyticsTimeseriesPoint[]>(
 			`/analytics/${endpointId}/timeseries${q ? `?${q}` : ""}`,
 		);
 	}
 
 	breakdown(endpointId: string) {
-		return this.http.request<AnalyticsBreakdownDto>(
+		return this.http.request<AnalyticsBreakdown>(
 			`/analytics/${endpointId}/breakdown`,
 		);
 	}

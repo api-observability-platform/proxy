@@ -2,7 +2,10 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig } from "prisma/config";
 
-const envFilePath: string = join(__dirname, ".env");
+const envFilePath: string = join(__dirname, "..", "..", ".env");
+
+console.log(envFilePath);
+
 if (existsSync(envFilePath)) {
 	process.loadEnvFile(envFilePath);
 }

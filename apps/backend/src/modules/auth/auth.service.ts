@@ -89,11 +89,11 @@ export class AuthService {
 		) {
 			throw new UnauthorizedException("Invalid or expired verification code");
 		}
-		const passwordsMatched = await bcrypt.compare(
+		const codeMatches = await bcrypt.compare(
 			verifyEmail.code,
 			user.verificationCodeHash,
 		);
-		if (passwordsMatched) {
+		if (!codeMatches) {
 			throw new UnauthorizedException("Invalid or expired verification code");
 		}
 		await this.prismaService.user.update({

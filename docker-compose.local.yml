@@ -30,7 +30,7 @@ services:
     image: redislabs/redisinsight:latest
     restart: always
     depends_on:
-      proxy-server-redis:
+      proxy-server-redis-local:
         condition: service_healthy
     ports:
       - ${RI_PORT}:${RI_PORT}

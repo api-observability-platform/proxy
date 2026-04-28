@@ -1,8 +1,8 @@
-import type { UserDto } from "@proxy-server/shared";
+import type { User } from "@proxy-server/shared";
 
 type ApiClientConfigType = {
 	getAccessToken: () => string | null;
-	setSession: (accessToken: string | null, user: UserDto | null) => void;
+	setSession: (accessToken: string | null, user: User | null) => void;
 	onSessionExpired: () => void;
 };
 

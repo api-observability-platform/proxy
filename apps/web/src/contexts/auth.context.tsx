@@ -1,4 +1,4 @@
-import type { UserDto } from "@proxy-server/shared";
+import type { User } from "@proxy-server/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createContext,
@@ -20,9 +20,9 @@ const SESSION_STORAGE_KEY = "proxy-server.session";
 
 const LEGACY_ACCESS_TOKEN_KEY = "proxy-server.accessToken";
 
-type AuthSession = { accessToken: string; user: UserDto } | null;
+type AuthSession = { accessToken: string; user: User } | null;
 
-const parseStoredUser = (value: unknown): UserDto | null => {
+const parseStoredUser = (value: unknown): User | null => {
 	if (!value || typeof value !== "object") {
 		return null;
 	}
@@ -100,10 +100,10 @@ const writeStoredSession = (session: AuthSession): void => {
 };
 
 interface AuthContextValue {
-	user: UserDto | null;
+	user: User | null;
 	accessToken: string | null;
 	isReady: boolean;
-	setSession: (accessToken: string, user: UserDto) => void;
+	setSession: (accessToken: string, user: User) => void;
 	logout: () => Promise<void>;
 }
 
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		writeStoredSession(sessionQuery.data ?? null);
 	}
 	const setSession = useCallback(
-		(token: string, u: UserDto) => {
+		(token: string, u: User) => {
 			accessTokenRef.current = token;
 			writeStoredSession({ accessToken: token, user: u });
 			queryClient.setQueryData<AuthSession>(AUTH_SESSION_QUERY_KEY, {

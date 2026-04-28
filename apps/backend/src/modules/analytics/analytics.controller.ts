@@ -1,4 +1,3 @@
-import type { AnalyticsTimeseriesQueryDto } from "./dtos/analytics-timeseries-query.dto";
 import type { AnalyticsBreakdownRdo } from "./rdos/analytics-breakdown.rdo";
 import type { AnalyticsSummaryRdo } from "./rdos/analytics-summary.rdo";
 import type { AnalyticsTimeseriesPointRdo } from "./rdos/analytics-timeseries-point.rdo";
@@ -17,6 +16,7 @@ import {
 import { CurrentUserDecorator } from "../../common/decorators/current-user.decorator";
 import { ErrorResponseSchema } from "../../common/swagger/schemas/error-response.schema";
 import { AnalyticsService } from "./analytics.service";
+import { AnalyticsTimeseriesQueryDto } from "./dtos/analytics-timeseries-query.dto";
 
 @ApiTags("Analytics")
 @ApiBearerAuth("Bearer")

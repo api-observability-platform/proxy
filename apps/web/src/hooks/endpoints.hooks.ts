@@ -35,7 +35,8 @@ export const useEndpointDetail = (id: string | undefined) => {
 export const useCreateEndpoint = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: endpointsApi.create,
+		mutationFn: (data: Parameters<typeof endpointsApi.create>[0]) =>
+			endpointsApi.create(data),
 		onSuccess: () => {
 			void queryClient.invalidateQueries({ queryKey: endpointsQueryKey });
 		},

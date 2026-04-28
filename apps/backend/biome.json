@@ -8,7 +8,7 @@
 		"rules": {
 			"style": {
 				"noNonNullAssertion": "error",
-				"useImportType": "error"
+				"useImportType": "off"
 			},
 			"suspicious": {
 				"noExplicitAny": "error",

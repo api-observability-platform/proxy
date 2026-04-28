@@ -26,7 +26,9 @@ export const IntegrationsPage = () => {
 	const [frequency, setFrequency] = useState<"DAILY" | "WEEKLY">("DAILY");
 	const [formError, setFormError] = useState("");
 	const createSch = useMutation({
-		mutationFn: notificationsApi.createReportSchedule,
+		mutationFn: (
+			data: Parameters<typeof notificationsApi.createReportSchedule>[0],
+		) => notificationsApi.createReportSchedule(data),
 		onSuccess: () => {
 			void qc.invalidateQueries({
 				queryKey: ["notifications", "report-schedules"],
@@ -38,7 +40,9 @@ export const IntegrationsPage = () => {
 			setFormError(e instanceof Error ? e.message : "Failed"),
 	});
 	const delSch = useMutation({
-		mutationFn: notificationsApi.deleteReportSchedule,
+		mutationFn: (
+			id: Parameters<typeof notificationsApi.deleteReportSchedule>[0],
+		) => notificationsApi.deleteReportSchedule(id),
 		onSuccess: () => {
 			void qc.invalidateQueries({
 				queryKey: ["notifications", "report-schedules"],

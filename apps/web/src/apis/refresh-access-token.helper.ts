@@ -1,4 +1,4 @@
-import type { UserDto } from "@proxy-server/shared";
+import type { User } from "@proxy-server/shared";
 import type { RefreshSessionResultType } from "./types/refresh-session-result.type";
 import { parseResponseHelper } from "./parse-response.helper";
 import { toApiUrl } from "./to-api-url.helper";
@@ -21,7 +21,7 @@ export const refreshAccessTokenHelper =
 				}
 				return await parseResponseHelper<{
 					accessToken: string;
-					user: UserDto;
+					user: User;
 				}>(res);
 			} catch {
 				return null;
